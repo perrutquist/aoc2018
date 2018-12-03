@@ -14,7 +14,7 @@ scan(day::Integer, s) = scanline(val(day), s)
 function getdata(day::Val{D}) where {D}
     file = "input$D.txt"
     isfile(file) || return nothing
-    map(s->scan(day, s), readlines(file))
+    map(s->scan(day, s), eachline(file))
 end
 getdata(day::Integer) = getdata(Val(day))
 
@@ -107,15 +107,21 @@ end
 
 const data = Array{Any,1}(undef, 25)
 
-for d in 25:-1:1
-    data[d] = getdata(d)
-    if data[d] !== nothing
-        println("\nDay $d: ", eltype(data[d]))
-        for p in 2:-1:1
-            r = solve(d, p, data[d])
-            r == nothing || println("Day $d, part $p: ", r)
+let t0 = time_ns(), N = 0
+    for d in 25:-1:1
+        data[d] = getdata(d)
+        if data[d] !== nothing
+            println("\nDay $d: ", eltype(data[d]))
+            for p in 2:-1:1
+                r = solve(d, p, data[d])
+                if r !== nothing
+                    N += 1
+                    println("Day $d, part $p: ", r)
+                end
+            end
         end
     end
+    println("Solved $N problems in $(1e-9*(time_ns()-t0)) seconds (includeing compile-time and data loading).")
 end
 
 end # module
