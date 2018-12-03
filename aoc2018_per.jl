@@ -1,12 +1,53 @@
+# Run this file from the Julia REPL using the `include` command
+#
+# Re-running the `include` command will replace the entire module, re-scan
+# all data, and re-run the computations. (No need to restart Julia.)
+#
+# At the REPL, each line of scanned data can be accessed as `AoC.data[day][line]`
+
 module AoC
 
-function day1part1(file)
-    v = map(x->parse(Int, x), readlines(file))
+"Scan one line of input for a given day"
+scan(day::Integer, s) = scanline(val(day), s)
+
+"Real all the input lines for a given day"
+function getdata(day::Val{D}) where {D}
+    file = "input$D.txt"
+    isfile(file) || return nothing
+    map(s->scan(day, s), readlines(file))
+end
+getdata(day::Integer) = getdata(Val(day))
+
+"Solve the problem for a given day and part, given a vector of scanned lines."
+solve(day, part, v) = solve(Val(day), Val(part), v)
+
+solve(::Val, ::Val, v) = nothing # fallback
+
+# For each day we need a `scan` and two `solves` methods.
+# day 0 can be copy-pasted as a starting point
+
+# --------------------------------------------------------------------
+day = 0
+
+function scan(::Val{day}, s)
+end
+
+function solve(::Val{day}, ::Val{1}, v)
+end
+
+function solve(::Val{day}, ::Val{2}, v)
+end
+
+# --------------------------------------------------------------------
+day = 1
+
+scan(::Val{day}, s) = parse(Int, s)
+
+function solve(::Val{day}, ::Val{1}, v)
     sum(v)
 end
 
-function day1part2(file)
-    v = map(x->parse(Int, x), readlines(file))
+function solve(::Val{day}, ::Val{2}, v)
     f = 0
     s = Set([0])
     for d in Iterators.cycle(v)
@@ -16,20 +57,26 @@ function day1part2(file)
     end
 end
 
-function day2part1(file)
-    v = map(Vector{Char}, readlines(file))
+# --------------------------------------------------------------------
+day = 2
+
+scan(::Val{day}, s) = Vector{Char}(s)
+
+function solve(::Val{day}, ::Val{1}, v)
     match(v, n) = any(map(c -> sum(v .== c) == n, v))
     sum(match.(v, 2)) * sum(match.(v, 3))
 end
 
-function day2part2(file)
-    v = map(Vector{Char}, readlines(file))
+function solve(::Val{day}, ::Val{2}, v)
     for a in v, b in v
         sum(a .!= b) == 1 && return String(a[a .== b])
     end
 end
 
-function day3scan(s)
+# --------------------------------------------------------------------
+day = 3
+
+function scan(::Val{day}, s)
     m = match(r"#(\d*) @ (\d*),(\d*): (\d*)x(\d*)", s)
     map(x->parse(Int, x), m.captures)
 end
@@ -43,27 +90,32 @@ function day3overlaps(v)
     M
 end
 
-function day3part1(file)
-    v = map(day3scan, readlines(file))
+function solve(::Val{day}, ::Val{1}, v)
     sum(day3overlaps(v) .> 1)
 end
 
-function day3part2(file)
-    v = map(day3scan, readlines(file))
+function solve(::Val{day}, ::Val{2}, v)
     M = day3overlaps(v)
     for c in v
         all(M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .== 1) && return c[1]
     end
 end
 
-end # module
+# --------------------------------------------------------------------
+# Loop over puzzles, load data, compute and print results
+# (Reverse order, since we're usually interested in the most recent result)
 
-# Loop over puzzles and compute and print results
-# (Reverse order, since we're most interested in the most recent result)
-for d=25:-1:1, p=1:2
-    f = Symbol("day$(d)part$(p)")
-    if f ∈ names(AoC, all=true)
-        r = @eval AoC.$f(string("input", $d, ".txt"))
-        println("Day $d, part $p: ", r)
+const data = Array{Any,1}(undef, 25)
+
+for d in 25:-1:1
+    data[d] = getdata(d)
+    if data[d] !== nothing
+        println("\nDay $d dataline type: ", eltype(data[d]))
+        for p in 2:-1:1
+            r = solve(d, p, data[d])
+            r == nothing || println("Day $d, part $p: ", r)
+        end
     end
 end
+
+end # module
