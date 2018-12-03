@@ -1,4 +1,5 @@
-# Run this file from the Julia REPL using the `include` command
+# Store the input data for day 1 as a file named `input1.txt`, and so on.
+# Then run this file from the Julia REPL using the `include` command
 #
 # Re-running the `include` command will replace the entire module, re-scan
 # all data, and re-run the computations. (No need to restart Julia.)
@@ -6,6 +7,8 @@
 # At the REPL, each line of scanned data can be accessed as `AoC.data[day][line]`
 
 module AoC
+
+using InteractiveUtils
 
 "Scan one line of input for a given day"
 scan(day::Integer, s) = scanline(val(day), s)
@@ -107,21 +110,33 @@ end
 
 const data = Array{Any,1}(undef, 25)
 
-let t0 = time_ns(), N = 0
+let t0 = time_ns(), N = 0, D = 0
     for d in 25:-1:1
         data[d] = getdata(d)
         if data[d] !== nothing
+            D += 1
             println("\nDay $d: ", eltype(data[d]))
             for p in 2:-1:1
                 r = solve(d, p, data[d])
                 if r !== nothing
                     N += 1
-                    println("Day $d, part $p: ", r)
+                    print("Day $d, part $p: ")
+                    if N == 1
+                        InteractiveUtils.clipboard(string(r))
+                        printstyled(r, bold=true)
+                        println(" (copied to clipboard)")
+                    else
+                       println(r)
+                    end
                 end
             end
         end
     end
-    println("Solved $N problems in $(1e-9*(time_ns()-t0)) seconds (includeing compile-time and data loading).")
+    if D != 0
+        println("\nSolved $N problems in $(1e-9*(time_ns()-t0)) seconds (including JIT-compile-time).")
+    else
+        println("No data files found!")
+    end
 end
 
 end # module
