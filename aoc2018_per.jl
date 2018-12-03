@@ -29,12 +29,41 @@ function day2part2(file)
     end
 end
 
+function day3scan(s)
+    m = match(r"#(\d*) @ (\d*),(\d*): (\d*)x(\d*)", s)
+    map(x->parse(Int, x), m.captures)
+end
+
+function day3overlaps(v)
+    mx = reduce((a,b) -> max.(a,b), v)
+    M = zeros(Int, mx[2]+mx[4], mx[3]+mx[5])
+    for c in v
+        M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .+= 1
+    end
+    M
+end
+
+function day3part1(file)
+    v = map(day3scan, readlines(file))
+    sum(day3overlaps(v) .> 1)
+end
+
+function day3part2(file)
+    v = map(day3scan, readlines(file))
+    M = day3overlaps(v)
+    for c in v
+        all(M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .== 1) && return c[1]
+    end
+end
+
 end # module
 
 # Loop over puzzles and compute and print results
-for d=1:24, p=1:2
+# (Reverse order, since we're most interested in the most recent result)
+for d=25:-1:1, p=1:2
     f = Symbol("day$(d)part$(p)")
-    f ∈ names(AoC, all=true) || break
-    r = @eval AoC.$f(string("input", $d, ".txt"))
-    println("Day $d, part $p: ", r)
+    if f ∈ names(AoC, all=true)
+        r = @eval AoC.$f(string("input", $d, ".txt"))
+        println("Day $d, part $p: ", r)
+    end
 end
