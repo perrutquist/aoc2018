@@ -78,7 +78,7 @@ day = 3
 
 function scan(::Val{day}, s)
     m = match(r"#(\d*) @ (\d*),(\d*): (\d*)x(\d*)", s)
-    map(x->parse(Int, x), m.captures)
+    parse.((Int, Int, Int, Int, Int), Tuple(m.captures))
 end
 
 function day3overlaps(v)
@@ -110,7 +110,7 @@ const data = Array{Any,1}(undef, 25)
 for d in 25:-1:1
     data[d] = getdata(d)
     if data[d] !== nothing
-        println("\nDay $d dataline type: ", eltype(data[d]))
+        println("\nDay $d: ", eltype(data[d]))
         for p in 2:-1:1
             r = solve(d, p, data[d])
             r == nothing || println("Day $d, part $p: ", r)
