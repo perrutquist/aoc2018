@@ -21,8 +21,8 @@ solve(day::Integer, part::Integer, v) = solve(Val(Int(day)), Val(Int(part)), v)
 solve(::Val, p, v) = nothing # fallback
 
 const lines = Array{Any,1}(undef, 25) # raw input as list of strings
-const solutions = Array{Any,2}(undef, 25, 2) # solutions
-const timings = zeros(25, 2)
+const solution = Array{Any,2}(undef, 25, 2)
+const timing = zeros(25, 2)
 
 """
    solveall()
@@ -47,9 +47,9 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
             for part in order(1:2)
                 td0 = time_ns()
                 r = solve(day, part, ld)
-                global solutions[day, part] = r
+                global solution[day, part] = r
                 t = 1e-9*(time_ns() - td0)
-                global timings[day, part] = t
+                global timing[day, part] = t
                 if r !== nothing
                     N += 1
                     print("Day $day, part $part: ")
@@ -66,8 +66,9 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
         end
     end
     if D != 0
-        Printf.@printf("\nSolved %d problems in %.6f seconds.\n", N, sum(timings))
-        println("(Timings include JIT-compilation time, but not reading data from disk).")
+        Printf.@printf("\nSolved %d problems in %.6f seconds.\n", N, sum(timing))
+        println("Timings may include JIT-compilation time (but not reading data from disk).")
+        println("Run AoC.solveall() again to get timings without JIT-compilation.")
         #Printf.@printf("Total time, including file reads: %.2f seconds.\n", 1e-9*(time_ns()-t0))
     else
         println("No data files found!")
