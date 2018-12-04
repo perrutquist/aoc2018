@@ -8,7 +8,7 @@ For maximum fun, try writing you own solutions before looking at somebody else's
 
 Copy `solutions_template.jl` and use as a starting point for writing your solutions.
 
-Edit `aoc2018.jl` and modify the line that reads `include("solutions_per.jl")` (near the to) to instead use your solutions file.
+Edit `aoc2018.jl` and modify the line that reads `include("solutions_per.jl")` (near the top) to instead use your solutions file.
 
 For each day, two methods that need to be written:
 * `scan(::Val{day}, s)` processes one line of input data and converts it to a more suitable format.
