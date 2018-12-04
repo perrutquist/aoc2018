@@ -68,7 +68,7 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
     if D != 0
         Printf.@printf("\nSolved %d problems in %.6f seconds.\n", N, sum(timing))
         println("Timings may include JIT-compilation time (but not reading data from disk).")
-        println("Run AoC.solveall() again to get timings without JIT-compilation.")
+        println("Run AoC.solveall() a second time to get timings without JIT-compilation.")
         #Printf.@printf("Total time, including file reads: %.2f seconds.\n", 1e-9*(time_ns()-t0))
     else
         println("No data files found!")
