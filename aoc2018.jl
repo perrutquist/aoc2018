@@ -1,6 +1,7 @@
 module AoC
 
 using InteractiveUtils # for copying to clipboard
+using Printf
 
 include("solutions_per.jl") # Change this line to use your own code instead
 
@@ -21,6 +22,7 @@ solve(::Val, p, v) = nothing # fallback
 
 const lines = Array{Any,1}(undef, 25) # raw input as list of strings
 const solutions = Array{Any,2}(undef, 25, 2) # solutions
+const timings = zeros(25, 2)
 
 """
    solveall()
@@ -43,24 +45,30 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
                 Main.eval(:( $Dn = $dd ))
             end
             for part in order(1:2)
+                td0 = time_ns()
                 r = solve(day, part, ld)
                 global solutions[day, part] = r
+                t = 1e-9*(time_ns() - td0)
+                global timings[day, part] = t
                 if r !== nothing
                     N += 1
                     print("Day $day, part $part: ")
                     if N == 1 && clipboard
                         printstyled(r, bold=true)
                         InteractiveUtils.clipboard(string(r))
-                        println(" (copied to clipboard)")
+                        print(" (copied to clipboard)")
                     else
-                       println(r)
+                       print(r)
                     end
+                    Printf.@printf " ( %.6f seconds )\n" t
                 end
             end
         end
     end
     if D != 0
-        println("\nSolved $N problems in $(1e-9*(time_ns()-t0)) seconds (including JIT-compile-time).")
+        Printf.@printf("\nSolved %d problems in %.6f seconds.\n", N, sum(timings))
+        println("(Timings include JIT-compile-time).")
+        #Printf.@printf("Total time, including file reads: %.2f seconds.\n", 1e-9*(time_ns()-t0))
     else
         println("No data files found!")
     end
