@@ -83,7 +83,7 @@ function solve(::Val{day}, part, v)
             sleeps = false
         elseif sl
             t = m
-            sl = true
+            sleeps = true
         else # wakes up
             s[id, t+1:m] .+= 1
             sleeps = false
