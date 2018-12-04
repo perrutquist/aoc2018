@@ -114,7 +114,7 @@ function scan(::Val{day}, s)
 end
 
 function solve(::Val{day}, part, v)
-    v = sort(v, by=i->10000*i[1]+i[2])
+    sort!(v, by=i->64*i[1]+i[2])
     id = 0
     t = 0
     N = maximum(x->x[3], v)
