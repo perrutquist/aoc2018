@@ -67,7 +67,7 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
     end
     if D != 0
         Printf.@printf("\nSolved %d problems in %.6f seconds.\n", N, sum(timings))
-        println("(Timings include JIT-compile-time).")
+        println("(Timings include JIT-compilation time).")
         #Printf.@printf("Total time, including file reads: %.2f seconds.\n", 1e-9*(time_ns()-t0))
     else
         println("No data files found!")
