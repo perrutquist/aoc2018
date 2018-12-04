@@ -1,4 +1,4 @@
-# Advent of code in Julia (2018)
+# Advent of Code in Julia (2018)
 
 This is a repository of my solutions to the AoC 2018 contest.
 
@@ -14,10 +14,12 @@ For each day, two methods that need to be written:
 * `scan(::Val{day}, s)` processes one line of input data and converts it to a more suitable format.
 * `solve(::Val{day}, ::Val{part}, v)` takes a list `v` of whatever `scan` returned and computes the solution.
 
+The `solve` methods for each day will usually consist of some code that is common to the two parts, followed by an `if` statement that computes the solution for each part. However, it is also possible to write completely separate methods for the two parts.
+
 For days that are missing a `scan` method, `solve` will simply get a vector of the input strings.
 If the `solve` method is missing or returns `nothing`, then no solution will be printed.
 
-Store the input data for day `1` as a file named `input1.txt`, and so on. Then run `include("aoc2018_per.jl")` from the Julia REPL. The `solve` function will be solved for each day (1-25) and part (1-2).
+Store the input data for day `1` as a file named `input1.txt`, and so on. Then run `include("aoc2018.jl")` from the Julia REPL. The `solve` function will be solved for each day (1-25) and part (1-2).
 
 Re-running the `include` command will replace the entire module, re-scan all data, and re-run the computations. (No need to restart Julia.)
 
