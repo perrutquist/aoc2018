@@ -8,10 +8,11 @@
 
 module AoC
 
-using InteractiveUtils
+using InteractiveUtils # for copying to clipboard
 
 "Scan one line of input for a given day"
 scan(day::Integer, s) = scan(Val(Int(day)), s)
+scan(::Val, s) = s # fallback
 
 "Real all the input lines for a given day"
 function getdata(day::Val{D}) where {D}
@@ -35,8 +36,8 @@ day = 0
 function scan(::Val{day}, s)
 end
 
-function solve(::Val{day}, p, v)
-    if p == Val(1)
+function solve(::Val{day}, part, v)
+    if part == Val(1)
 
     else
 
@@ -86,15 +87,15 @@ function scan(::Val{day}, s)
     parse.((Int, Int, Int, Int, Int), Tuple(m.captures))
 end
 
-function solve(::Val{day}, p, v)
+function solve(::Val{day}, part, v)
     mx = reduce((a,b) -> max.(a,b), v)
     M = zeros(Int, mx[2]+mx[4], mx[3]+mx[5])
     for c in v
         M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .+= 1
     end
-    if p === Val(1)
-        return sum(day3overlaps(v) .> 1)
-    else
+    if part === Val(1)
+        return sum(M .> 1)
+    else # part 2
         for c in v
             all(M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .== 1) && return c[1]
         end
@@ -104,21 +105,20 @@ end
 # --------------------------------------------------------------------
 day = 4
 
-const BIG = 10000 # Assumed max number of guards
-
 function scan(::Val{day}, s)
     m = match(r"\[(\d*)-(\d*)-(\d*) (\d*):(\d*)\] (.*)", s)
-    s = parse.((Int, Int, Int, Int, Int), Tuple(m.captures[1:5]))
+    s = parse.(Int, m.captures[1:5])
     g = match(r"Guard #(\d*) begins shift", m.captures[6])
     id = g === nothing ? 0 : parse(Int, g.captures[1])
     (366*s[1] + 31*s[2] + s[3]+(s[4]==23), s[5]-60*(s[4]==23), id, m.captures[6]=="falls asleep")
 end
 
-function solve(::Val{day}, p, v)
+function solve(::Val{day}, part, v)
     v = sort(v, by=i->10000*i[1]+i[2])
     id = 0
     t = 0
-    s = zeros(Int, BIG, 60)
+    N = maximum(x->x[3], v)
+    s = zeros(Int, N, 60)
     for (xx, m, i, sl) in v
         if i > 0
             id = i
@@ -128,13 +128,12 @@ function solve(::Val{day}, p, v)
             s[id, t+1:m] .+= 1
         end
     end
-    if p == Val(1)
-        tot = sum(s, dims=2)
-        (tx, ix) = findmax(vec(tot))
+    if part == Val(1)
+        (xx, ix) = findmax(vec(sum(s, dims=2)))
         (xx, mn) = findmax(s[ix,:])
         return (ix*(mn-1))
-    else
-        (tx, ix) = findmax(s)
+    else # part 2
+        (xx, ix) = findmax(s)
         return ix[1]*(ix[2]-1)
     end
 end
