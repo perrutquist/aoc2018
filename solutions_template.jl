@@ -1,30 +1,28 @@
 # For each day, write a `scan` and a `solve` method.
 # (Or skip the `scan` method and let `solve` start from a list of strings.)
 
-# --------------------------------------------------------------------
-day = 1
+# ----------------------------- Day  1 ---------------------------------------
 
-function scan(::Val{day}, s)
+scan(::Val{1}, line) = line
 
-end
+function solve(day::Val{1}, part, lines)
+    data = scan.(day, lines)
 
-function solve(::Val{day}, part, v)
-    if part == Val(1)
+    if part === Val(1)
 
     else
 
     end
 end
 
-# --------------------------------------------------------------------
-day = 2
+# ----------------------------- Day  2 ---------------------------------------
 
-function scan(::Val{day}, s)
+scan(::Val{2}, line) = line
 
-end
+function solve(day::Val{2}, part, lines)
+    data = scan.(day, lines)
 
-function solve(::Val{day}, part, v)
-    if part == Val(1)
+    if part === Val(1)
 
     else
 
