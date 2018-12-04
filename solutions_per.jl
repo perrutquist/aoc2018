@@ -72,21 +72,21 @@ function solve(::Val{day}, part, v)
     t = 0
     N = maximum(x->x[3], v)
     s = zeros(Int, N, 60)
-    sl = false
+    sleeps = false
     for (xx, m, i, sl) in v
         if i > 0
-            if sl # last guard slept at end of hour
+            if sleeps # last guard slept at end of hour
                 # This never happened in the input data
                 s[id, t+1:end] .+= 1
             end
             id = i
-            sl = false
+            sleeps = false
         elseif sl
             t = m
             sl = true
         else # wakes up
             s[id, t+1:m] .+= 1
-            sl = false
+            sleeps = false
         end
     end
     if part == Val(1)
