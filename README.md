@@ -1,4 +1,4 @@
-# Advent of Code in Julia (2018)
+# Advent of Code (2018) in Julia 
 
 This is a repository of my solutions to the AoC 2018 contest.
 

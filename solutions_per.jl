@@ -67,18 +67,26 @@ function scan(::Val{day}, s)
 end
 
 function solve(::Val{day}, part, v)
-    sort!(v, by=i->64*i[1]+i[2])
+    sort!(v, by=i->256*i[1]+i[2])
     id = 0
     t = 0
     N = maximum(x->x[3], v)
     s = zeros(Int, N, 60)
+    sl = false
     for (xx, m, i, sl) in v
         if i > 0
+            if sl # last guard slept at end of hour
+                # This never happened in the input data
+                s[id, t+1:end] .+= 1
+            end
             id = i
+            sl = false
         elseif sl
             t = m
+            sl = true
         else # wakes up
             s[id, t+1:m] .+= 1
+            sl = false
         end
     end
     if part == Val(1)
