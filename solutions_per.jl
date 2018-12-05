@@ -110,8 +110,9 @@ function solve(day::Val{5}, part, lines)
         reacting(i, m) = (i<length(p) && r(i, m)) || (i > 1 && r(i-1, m))
         while true
             l = length(p)
-            deleteat!(p, reacting.(1:length(p), 0))
-            deleteat!(p, reacting.(1:length(p), 1))
+            for m in 0:1
+                deleteat!(p, reacting.(1:length(p), m))
+            end
             length(p) == l && return l
         end
     end
