@@ -63,22 +63,20 @@ function scan(::Val{4}, line)
     s = parse.(Int, m.captures[1:5])
     g = match(r"Guard #(\d*) begins shift", m.captures[6])
     id = g === nothing ? 0 : parse(Int, g.captures[1])
-    (366*s[1] + 31*s[2] + s[3]+(s[4]==23), s[5]-60*(s[4]==23), id, m.captures[6]=="falls asleep")
+    (s[5]-60*(s[4]==23), id, m.captures[6]=="falls asleep")
 end
 
 function solve(day::Val{4}, part, lines)
-    data = scan.(day, lines)
-    sort!(data, by=i->256*i[1]+i[2])
+    data = scan.(day, sort(lines))
     id = 0
     t = 0
-    N = maximum(x->x[3], data)
+    N = maximum(x->x[2], data)
     s = zeros(Int, N, 60)
     sleeps = false
-    for (xx, m, i, sl) in data
+    for (m, i, sl) in data
         if i > 0
-            if sleeps # last guard slept at end of hour
-                # This never happened in the input data
-                s[id, t+1:end] .+= 1
+            if sleeps # last guard slept at end of hour (never happens)
+                s[id, (t+1):end] .+= 1
             end
             id = i
             sleeps = false
@@ -86,7 +84,7 @@ function solve(day::Val{4}, part, lines)
             t = m
             sleeps = true
         else # wakes up
-            s[id, t+1:m] .+= 1
+            s[id, (t+1):m] .+= 1
             sleeps = false
         end
     end
