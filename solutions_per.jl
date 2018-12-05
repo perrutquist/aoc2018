@@ -19,7 +19,7 @@ end
 
 # ----------------------------- Day  2 ---------------------------------------
 
-scan(::Val{2}, line) = Vector{Char}(line)
+scan(::Val{2}, line) = Vector{UInt8}(line)
 
 function solve(day::Val{2}, part, lines)
     data = scan.(day, lines)
