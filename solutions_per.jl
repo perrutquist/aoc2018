@@ -63,11 +63,11 @@ function scan(::Val{4}, line)
     s = parse.(Int, m.captures[1:5])
     g = match(r"Guard #(\d*) begins shift", m.captures[6])
     id = g === nothing ? 0 : parse(Int, g.captures[1])
-    (s[5]-60*(s[4]==23), id, m.captures[6]=="falls asleep")
+    (s[5], id, m.captures[6]=="falls asleep")
 end
 
 function solve(day::Val{4}, part, lines)
-    data = scan.(day, sort(lines))
+    data = scan.(day, sort(lines)) # global D4 will be useless
     id = 0
     t = 0
     N = maximum(x->x[2], data)
