@@ -19,7 +19,7 @@ end
 
 # ----------------------------- Day  2 ---------------------------------------
 
-scan(::Val{2}, line) = Vector{UInt8}(line)
+scan(::Val{2}, line) = Vector{Char}(line)
 
 function solve(day::Val{2}, part, lines)
     data = scan.(day, lines)
@@ -91,7 +91,7 @@ end
 
 # ----------------------------- Day  5 ---------------------------------------
 
-scan(::Val{5}, line) = Vector{UInt8}(line)
+scan(::Val{5}, line) = Vector{Char}(line)
 
 function solve(day::Val{5}, part, lines)
     polymer = scan.(day, lines)[1]
