@@ -61,16 +61,15 @@ end
 function scan(::Val{4}, line)
     m = match(r"\[\d*-\d*-\d* \d*:(\d*)\] (.*)", line)
     s = parse(Int, m.captures[1])
-    g = match(r"Guard #(\d*) begins shift", m.captures[2])
-    if g !== nothing # new guard
+
+    if (g = match(r"Guard #(\d*) begins shift", m.captures[2])) !== nothing
         id = parse(Int, g.captures[1])
-        return (M, t, xx)->begin
+        (M, t, xx)->begin
             @assert t==-1
             haskey(M,id) || (M[id] = zeros(Int, 60))
             (-1, id)
         end
-    end
-    if m.captures[2]=="falls asleep"
+    elseif m.captures[2]=="falls asleep"
         (M, t, id)->(s, id)
     else # wakes up
         (M, t, id)->(M[id][(t+1):s] .+= 1; (-1, id))
