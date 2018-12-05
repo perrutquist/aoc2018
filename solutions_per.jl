@@ -99,3 +99,30 @@ function solve(day::Val{4}, part, lines)
         ix[1]*(ix[2]-1)
     end
 end
+
+# ----------------------------- Day  1 ---------------------------------------
+
+scan(::Val{5}, line) = Vector{Char}(line)
+
+function solve(day::Val{5}, part, lines)
+    polymer = scan.(day, lines)[1]
+
+    function reactall!(p)
+        while true
+            l = length(p)
+            r(i, m) = i<length(p) && i%2 == m && abs( p[i] - p[i+1] ) == 32
+            reacting(i, m) = r(i, m) || (i > 1 && r(i-1, m))
+            deleteat!(p, reacting.(1:length(p), 0))
+            deleteat!(p, reacting.(1:length(p), 1))
+            length(p) == l && return l
+        end
+    end
+
+    if part === Val(1)
+        reactall!(polymer)
+    else
+        d(a, c) = a != c && a != lowercase(c)
+        f(c) = reactall!(polymer[d.(polymer,c)])
+        minimum(f.('A':'Z'))
+    end
+end
