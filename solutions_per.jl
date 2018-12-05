@@ -62,7 +62,7 @@ function scan(::Val{4}, line)
     m = match(r"\[\d*-\d*-\d* \d*:(\d*)\] (.*)", line)
     s = parse(Int, m.captures[1])
     g = match(r"Guard #(\d*) begins shift", m.captures[2])
-    if g !== nothing
+    if g !== nothing # new guard
         id = parse(Int, g.captures[1])
         return (M, t, xx)->begin
             @assert t==-1
@@ -78,7 +78,7 @@ function scan(::Val{4}, line)
 end
 
 function solve(day::Val{4}, part, lines)
-    data = scan.(day, sort(lines)) # global D4 will be useless because it doesn't get the sorted array
+    data = scan.(day, sort(lines)) # global D4 will be useless because it doesn't get sorted
     M = Dict{Int, Vector{Int}}()
     (t, id) = data[1](M, -1, 0)
     for f in data[2:end]
