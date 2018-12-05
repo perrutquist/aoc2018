@@ -59,43 +59,35 @@ end
 # ----------------------------- Day  4 ---------------------------------------
 
 function scan(::Val{4}, line)
-    m = match(r"\[(\d*)-(\d*)-(\d*) (\d*):(\d*)\] (.*)", line)
-    s = parse.(Int, m.captures[1:5])
-    g = match(r"Guard #(\d*) begins shift", m.captures[6])
-    id = g === nothing ? 0 : parse(Int, g.captures[1])
-    (s[5], id, m.captures[6]=="falls asleep")
+    m = match(r"\[\d*-\d*-\d* \d*:(\d*)\] (.*)", line)
+    s = parse(Int, m.captures[1])
+    g = match(r"Guard #(\d*) begins shift", m.captures[2])
+    if g !== nothing
+        id = parse(Int, g.captures[1])
+        return (M, t, xx)->begin
+            @assert t==-1
+            haskey(M,id) || (M[id] = zeros(Int, 60))
+            (-1, id)
+        end
+    end
+    if m.captures[2]=="falls asleep"
+        (M, t, id)->(s, id)
+    else # wakes up
+        (M, t, id)->(M[id][(t+1):s] .+= 1; (-1, id))
+    end
 end
 
 function solve(day::Val{4}, part, lines)
-    data = scan.(day, sort(lines)) # global D4 will be useless
-    id = 0
-    t = 0
-    N = maximum(x->x[2], data)
-    s = zeros(Int, N, 60)
-    sleeps = false
-    for (m, i, sl) in data
-        if i > 0
-            if sleeps # last guard slept at end of hour (never happens)
-                s[id, (t+1):end] .+= 1
-            end
-            id = i
-            sleeps = false
-        elseif sl
-            t = m
-            sleeps = true
-        else # wakes up
-            s[id, (t+1):m] .+= 1
-            sleeps = false
-        end
+    data = scan.(day, sort(lines)) # global D4 will be useless because it doesn't get the sorted array
+    M = Dict{Int, Vector{Int}}()
+    (t, id) = data[1](M, -1, 0)
+    for f in data[2:end]
+        (t, id) = f(M, t, id)
     end
-    if part === Val(1)
-        (xx, ix) = findmax(vec(sum(s, dims=2)))
-        (xx, mn) = findmax(s[ix,:])
-        ix*(mn-1)
-    else # part 2
-        (xx, ix) = findmax(s)
-        ix[1]*(ix[2]-1)
-    end
+    D = Dict([key => (part === Val(1) ? sum(val) : maximum(val)) for (key, val) in M])
+    (xx, ix) = findmax(D)
+    (xx, mn) = findmax(M[ix])
+    ix*(mn-1)
 end
 
 # ----------------------------- Day  5 ---------------------------------------
