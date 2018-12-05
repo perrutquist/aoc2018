@@ -75,6 +75,31 @@ function solveall(;reverse=false, clipboard=false, setglobals=false)
     end
 end
 
+using HTTP
+
+"""
+   getpuzzle(day, cookies)
+
+Get input data from the web server.
+
+day = the number of the puzzle input you wish to download
+cookies = a cookie string that has the session ID, etc. (from your web browser)
+
+Do NOT call this function repeatedly from a script just as the puzzle is released!
+Look at the calendar to see when the puzzle is open.
+(There's no point getting the data before you've writen some code anyway.)
+"""
+function getpuzzle(day, cookies; year=2018, force=false)
+    file = "input$day.txt"
+    isfile(file) && !force && error("File already exists: $file")
+    sleep(1)
+    r = HTTP.request("GET", "https://adventofcode.com/$year/day/$day/input", Dict(["Cookie" => cookies]))
+    open(h->write(h, r.body), file, "w")
+    r.body
+end
+
+getpuzzle(cookies::String, day::Integer; kwargs...) = getpuzzle(day, cookies; kwargs...)
+
 # Solve all puzzles.
 # Reverse order, since we're usually interested in the most recent result.
 # Copy to clipboard to make it easier to submit to contest.
