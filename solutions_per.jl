@@ -162,15 +162,10 @@ function solve(day::Val{6}, part, lines)
         R = 10000 # sum of distances must be less than this
         # Note: The below code will not work for arbitrarily large R.
 
-        (n,m) = reduce((a,b)->min.(a,b), data)
-        (N,M) = reduce((a,b)->max.(a,b), data)
-
         D .= 0
-
         for p in data
             @. D += manhattan(C, (p,))
         end
-
         sum(D .< R)
     end
 end
