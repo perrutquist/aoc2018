@@ -126,6 +126,8 @@ function scan(::Val{6}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
+manhattan(a, b) = sum(@. abs(a-b))
+
 function solve(day::Val{6}, ::Val{1}, lines)
     data = scan.(day, lines)
 
@@ -133,44 +135,23 @@ function solve(day::Val{6}, ::Val{1}, lines)
     (N,M) = reduce((a,b)->max.(a,b), data)
     B = 1
 
-    A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
-    A .= 0
+    D = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
+    K = similar(D)
+    C = Tuple.(CartesianIndices(D))
+
+    D .= typemax(Int)
     for k in eachindex(data)
-        A[data[k]...] = k
-    end
-    A[n-B,:] .= -1
-    A[N+B,:] .= -1
-    A[:,m-B] .= -1
-    A[:,M+B] .= -1
-    A2 = copy(A)
-
-    as = data
-
-    c = true
-    while !isempty(as)
-        c = false
-        A .= A2
-        V = zeros(Bool,size(A))
-        as2 = Vector{Tuple{Int, Int}}()
-        for (i0,j0) in as
-            for (i,j) in ((i0-1, j0), (i0+1, j0), (i0,j0-1), (i0,j0+1))
-                if A2[i,j] == 0
-                    A2[i,j] = A[i0,j0]
-                    push!(as2, (i,j))
-                elseif A2[i,j] != A[i0,j0] && A[i,j] == 0
-                    A2[i,j] = -1
-                end
-            end
-        end
-        as = copy(as2)
+        dst = manhattan.(C, (data[k],))
+        @. K = ifelse(dst < D, k, ifelse(dst == D, -1, K))
+        @. D = ifelse(dst == D, -1, min(D, dst))
     end
 
     function area(i)
-        any(A[n-B+1,:] .== i) && return -1
-        any(A[N+B-1,:] .== i) && return -1
-        any(A[:,m-B+1] .== i) && return -1
-        any(A[:,M+B-1] .== i) && return -1
-        sum(A .== i)
+        any(K[n-B+1,:] .== i) && return -1
+        any(K[N+B-1,:] .== i) && return -1
+        any(K[:,m-B+1] .== i) && return -1
+        any(K[:,M+B-1] .== i) && return -1
+        sum(K .== i)
     end
 
     maximum(area.(eachindex(data)))
@@ -189,10 +170,8 @@ function solve(day::Val{6}, ::Val{2}, lines)
     A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
     A .= 0
 
-    dst(a,b) = sum(abs.(a.-b))
-
-    for i in axes(A,1), j in axes(A,2), k in eachindex(data)
-        A[i,j] += dst((i,j), data[k])
+    for i in axes(A,1), j in axes(A,2), p in data
+        A[i,j] += manhattan((i,j), p)
     end
 
     sum(A .< R)
