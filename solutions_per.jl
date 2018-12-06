@@ -116,3 +116,83 @@ function solve(day::Val{5}, part, lines)
         minimum(f.('A':'Z'))
     end
 end
+
+# ----------------------------- Day  6 ---------------------------------------
+
+function scan(::Val{6}, line)
+    m = match(r"(\d*), (\d*)", line)
+    parse.((Int, Int), Tuple(m.captures))
+end
+
+function solve(day::Val{6}, ::Val{1}, lines)
+    data = scan.(day, lines)
+
+    (n,m) = reduce((a,b)->min.(a,b), data)
+    (N,M) = reduce((a,b)->max.(a,b), data)
+    B = max(N-n,M-m)
+
+    A = zeros(N+2B,M+2B)
+    for k in eachindex(data)
+        (i, j) = data[k]
+        A[i+B, j+B] = k
+    end
+    A[1,:] .= -1
+    A[end,:] .= -1
+    A[:,1] .= -1
+    A[:,end] .= -1
+    A2 = copy(A)
+
+    as = [data[k] .+ B for k in eachindex(data)]
+
+    c = true
+    while !isempty(as)
+        c = false
+        A .= A2
+        V = zeros(Bool,size(A))
+        as2 = Vector{Tuple{Int, Int}}()
+        for (i0,j0) in as
+            for (i,j) in ((i0-1, j0), (i0+1, j0), (i0,j0-1), (i0,j0+1))
+                if A2[i,j] == 0
+                    A2[i,j] = A[i0,j0]
+                    push!(as2, (i,j))
+                elseif A2[i,j] != A[i0,j0] && A[i,j] == 0
+                    A2[i,j] = -1
+                end
+            end
+        end
+        as = copy(as2)
+    end
+
+    h = [sum(A .== k) for k in eachindex(data)]
+
+    function ii(i)
+        any(A[2,:] .== i) && return(typemin(Int))
+        any(A[end-1,:] .== i) && return(typemin(Int))
+        any(A[:,2] .== i) && return(typemin(Int))
+        any(A[:,end-1] .== i) && return(typemin(Int))
+        0
+    end
+
+    maximum(h .- ii.(eachindex(data)))
+end
+
+function solve(day::Val{6}, ::Val{2}, lines)
+    data = scan.(day, lines)
+    R = 10000 # sum of distances must be less than this
+
+    (N,M) = reduce((a,b)->max.(a,b), data)
+
+    B = div(R, length(data))
+
+    A = zeros(Int, N+2B,M+2B)
+
+    c = [x .+ B for x in data]
+
+    dst(a,b) = sum(abs.(a.-b))
+
+    for i in 1:size(A,1), j in 1:size(A,2), k in eachindex(c)
+        A[i,j] += dst((i,j), c[k])
+    end
+
+    sum(A .< R)
+end
