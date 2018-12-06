@@ -183,7 +183,8 @@ function solve(day::Val{6}, ::Val{2}, lines)
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
 
-    B = div(R, length(data))
+    # B = div(R, length(data)) # TODO: What is the best bound on B, given R ?
+    B = 0 # seems to work, because R is small enough...
 
     A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
     A .= 0
