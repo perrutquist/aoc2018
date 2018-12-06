@@ -146,7 +146,7 @@ function solve(day::Val{6}, part, lines)
             p = data[k]
             @. dst = manhattan(C, (p,))
             @. K = ifelse(dst < D, k, ifelse(dst == D, -1, K))
-            @. D = ifelse(dst == D, -1, min(D, dst))
+            @. D = min(D, dst)
         end
 
         function area(i)
