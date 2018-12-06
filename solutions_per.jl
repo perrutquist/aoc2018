@@ -133,24 +133,25 @@ function solve(day::Val{6}, ::Val{1}, lines)
 
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
-    B = 1
 
-    D = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
+    D = OffsetArray{Int,2}(undef, n:N, m:M)
     K = similar(D)
+    dst = similar(D)
     C = Tuple.(CartesianIndices(D))
 
     D .= typemax(Int)
     for k in eachindex(data)
-        dst = manhattan.(C, (data[k],))
+        p = data[k]
+        @. dst = manhattan(C, (p,))
         @. K = ifelse(dst < D, k, ifelse(dst == D, -1, K))
         @. D = ifelse(dst == D, -1, min(D, dst))
     end
 
     function area(i)
-        any(K[n-B+1,:] .== i) && return -1
-        any(K[N+B-1,:] .== i) && return -1
-        any(K[:,m-B+1] .== i) && return -1
-        any(K[:,M+B-1] .== i) && return -1
+        any(K[n,:] .== i) && return -1
+        any(K[N,:] .== i) && return -1
+        any(K[:,m] .== i) && return -1
+        any(K[:,M] .== i) && return -1
         sum(K .== i)
     end
 
@@ -160,18 +161,17 @@ end
 function solve(day::Val{6}, ::Val{2}, lines)
     data = scan.(day, lines)
     R = 10000 # sum of distances must be less than this
+    # Note: The below code will not work for arbitrarily large R.
 
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
 
-    # B = div(R, length(data)) # TODO: What is the best bound on B, given R ?
-    B = 0 # seems to work, because R is small enough...
-
-    A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
+    A = OffsetArray{Int,2}(undef, n:N, m:M)
+    C = Tuple.(CartesianIndices(A))
     A .= 0
 
-    for i in axes(A,1), j in axes(A,2), p in data
-        A[i,j] += manhattan((i,j), p)
+    for p in data
+        @. A += manhattan(C, (p,))
     end
 
     sum(A .< R)
