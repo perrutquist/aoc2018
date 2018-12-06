@@ -1,3 +1,5 @@
+using OffsetArrays
+
 # ----------------------------- Day  1 ---------------------------------------
 
 scan(::Val{1}, line) = parse(Int, line)
@@ -129,20 +131,20 @@ function solve(day::Val{6}, ::Val{1}, lines)
 
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
-    B = max(N-n,M-m)
+    B = 1
 
-    A = zeros(N+2B,M+2B)
+    A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
+    A .= 0
     for k in eachindex(data)
-        (i, j) = data[k]
-        A[i+B, j+B] = k
+        A[data[k]...] = k
     end
-    A[1,:] .= -1
-    A[end,:] .= -1
-    A[:,1] .= -1
-    A[:,end] .= -1
+    A[n-B,:] .= -1
+    A[N+B,:] .= -1
+    A[:,m-B] .= -1
+    A[:,M+B] .= -1
     A2 = copy(A)
 
-    as = [data[k] .+ B for k in eachindex(data)]
+    as = data
 
     c = true
     while !isempty(as)
@@ -164,10 +166,10 @@ function solve(day::Val{6}, ::Val{1}, lines)
     end
 
     function area(i)
-        any(A[2,:] .== i) && return -1
-        any(A[end-1,:] .== i) && return -1
-        any(A[:,2] .== i) && return -1
-        any(A[:,end-1] .== i) && return -1
+        any(A[n-B+1,:] .== i) && return -1
+        any(A[N+B-1,:] .== i) && return -1
+        any(A[:,m-B+1] .== i) && return -1
+        any(A[:,M+B-1] .== i) && return -1
         sum(A .== i)
     end
 
@@ -178,18 +180,18 @@ function solve(day::Val{6}, ::Val{2}, lines)
     data = scan.(day, lines)
     R = 10000 # sum of distances must be less than this
 
+    (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
 
     B = div(R, length(data))
 
-    A = zeros(Int, N+2B,M+2B)
-
-    c = [x .+ B for x in data]
+    A = OffsetArray{Int,2}(undef, n-B:N+B, m-B:M+B)
+    A .= 0
 
     dst(a,b) = sum(abs.(a.-b))
 
-    for i in 1:size(A,1), j in 1:size(A,2), k in eachindex(c)
-        A[i,j] += dst((i,j), c[k])
+    for i in axes(A,1), j in axes(A,2), k in eachindex(data)
+        A[i,j] += dst((i,j), data[k])
     end
 
     sum(A .< R)
