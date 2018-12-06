@@ -112,7 +112,7 @@ function solve(day::Val{5}, part, lines)
 
     if part === Val(1)
         reactall!(polymer)
-    else
+    else # part 2
         same(a, c) = a == c || a == lowercase(c)
         f(c) = reactall!(polymer[@. !same(polymer,c)])
         minimum(f.('A':'Z'))
@@ -128,51 +128,49 @@ end
 
 manhattan(a, b) = sum(@. abs(a-b))
 
-function solve(day::Val{6}, ::Val{1}, lines)
+function solve(day::Val{6}, part, lines)
     data = scan.(day, lines)
 
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
 
     D = OffsetArray{Int,2}(undef, n:N, m:M)
-    K = similar(D)
-    dst = similar(D)
     C = Tuple.(CartesianIndices(D))
 
-    D .= typemax(Int)
-    for k in eachindex(data)
-        p = data[k]
-        @. dst = manhattan(C, (p,))
-        @. K = ifelse(dst < D, k, ifelse(dst == D, -1, K))
-        @. D = ifelse(dst == D, -1, min(D, dst))
+    if part == Val(1)
+        K = similar(D)
+        dst = similar(D)
+
+        D .= typemax(Int)
+        for k in eachindex(data)
+            p = data[k]
+            @. dst = manhattan(C, (p,))
+            @. K = ifelse(dst < D, k, ifelse(dst == D, -1, K))
+            @. D = ifelse(dst == D, -1, min(D, dst))
+        end
+
+        function area(i)
+            any(K[n,:] .== i) && return -1
+            any(K[N,:] .== i) && return -1
+            any(K[:,m] .== i) && return -1
+            any(K[:,M] .== i) && return -1
+            sum(K .== i)
+        end
+
+        maximum(area.(eachindex(data)))
+    else # part 2
+        R = 10000 # sum of distances must be less than this
+        # Note: The below code will not work for arbitrarily large R.
+
+        (n,m) = reduce((a,b)->min.(a,b), data)
+        (N,M) = reduce((a,b)->max.(a,b), data)
+
+        D .= 0
+
+        for p in data
+            @. D += manhattan(C, (p,))
+        end
+
+        sum(D .< R)
     end
-
-    function area(i)
-        any(K[n,:] .== i) && return -1
-        any(K[N,:] .== i) && return -1
-        any(K[:,m] .== i) && return -1
-        any(K[:,M] .== i) && return -1
-        sum(K .== i)
-    end
-
-    maximum(area.(eachindex(data)))
-end
-
-function solve(day::Val{6}, ::Val{2}, lines)
-    data = scan.(day, lines)
-    R = 10000 # sum of distances must be less than this
-    # Note: The below code will not work for arbitrarily large R.
-
-    (n,m) = reduce((a,b)->min.(a,b), data)
-    (N,M) = reduce((a,b)->max.(a,b), data)
-
-    A = OffsetArray{Int,2}(undef, n:N, m:M)
-    C = Tuple.(CartesianIndices(A))
-    A .= 0
-
-    for p in data
-        @. A += manhattan(C, (p,))
-    end
-
-    sum(A .< R)
 end
