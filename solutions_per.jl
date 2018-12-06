@@ -93,7 +93,7 @@ end
 
 # ----------------------------- Day  5 ---------------------------------------
 
-scan(::Val{5}, line) = Vector{Char}(line)
+scan(::Val{5}, line) = Vector{UInt8}(line)
 
 function solve(day::Val{5}, part, lines)
     polymer = scan.(day, lines)[1]
@@ -113,9 +113,9 @@ function solve(day::Val{5}, part, lines)
     if part === Val(1)
         reactall!(polymer)
     else # part 2
-        same(a, c) = a == c || a == lowercase(c)
+        same(a, c) = a == c || a == c+32
         f(c) = reactall!(polymer[@. !same(polymer,c)])
-        minimum(f.('A':'Z'))
+        minimum(f.(Int8.('A':'Z')))
     end
 end
 
