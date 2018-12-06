@@ -163,17 +163,15 @@ function solve(day::Val{6}, ::Val{1}, lines)
         as = copy(as2)
     end
 
-    h = [sum(A .== k) for k in eachindex(data)]
-
-    function ii(i)
-        any(A[2,:] .== i) && return(typemin(Int))
-        any(A[end-1,:] .== i) && return(typemin(Int))
-        any(A[:,2] .== i) && return(typemin(Int))
-        any(A[:,end-1] .== i) && return(typemin(Int))
-        0
+    function area(i)
+        any(A[2,:] .== i) && return -1
+        any(A[end-1,:] .== i) && return -1
+        any(A[:,2] .== i) && return -1
+        any(A[:,end-1] .== i) && return -1
+        sum(A .== i)
     end
 
-    maximum(h .- ii.(eachindex(data)))
+    maximum(area.(eachindex(data)))
 end
 
 function solve(day::Val{6}, ::Val{2}, lines)
