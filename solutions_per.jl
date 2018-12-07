@@ -1,5 +1,4 @@
 using OffsetArrays
-using StaticArrays
 
 # ----------------------------- Day  1 ---------------------------------------
 
@@ -104,24 +103,23 @@ scan(::Val{5}, line) = Vector{Char}(line)
 function solve(day::Val{5}, part, lines)
     polymer = scan.(day, lines)[1]
 
-    function reactall!(p)
-        r(i, m) = i%2 == m && abs( p[i] - p[i+1] ) == 32
-        reacting(i, m) = (i<length(p) && r(i, m)) || (i > 1 && r(i-1, m))
-        while true
-            l = length(p)
-            for m in 0:1
-                deleteat!(p, reacting.(1:length(p), m))
+    function react(p, skip=nothing)
+        o = Char[]
+        for c in p
+            uppercase(c) == skip && continue
+            if !isempty(o) && abs(o[end] - c) == 32
+                pop!(o)
+            else
+                push!(o, c)
             end
-            length(p) == l && return l
         end
+        length(o)
     end
 
     if part === Val(1)
-        reactall!(polymer)
+        react(polymer)
     else # part 2
-        same(a, c) = a == c || a == lowercase(c)
-        f(c) = reactall!(polymer[@. !same(polymer,c)])
-        minimum(f.('A':'Z'))
+        minimum(react.((polymer,), 'A':'Z'))
     end
 end
 
