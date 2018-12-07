@@ -1,4 +1,5 @@
 using OffsetArrays
+using StaticArrays
 
 # ----------------------------- Day  1 ---------------------------------------
 
@@ -98,7 +99,7 @@ end
 
 # ----------------------------- Day  5 ---------------------------------------
 
-scan(::Val{5}, line) = Vector{UInt8}(line)
+scan(::Val{5}, line) = Vector{Char}(line)
 
 function solve(day::Val{5}, part, lines)
     polymer = scan.(day, lines)[1]
@@ -118,9 +119,9 @@ function solve(day::Val{5}, part, lines)
     if part === Val(1)
         reactall!(polymer)
     else # part 2
-        same(a, c) = a == c || a == c+32
+        same(a, c) = a == c || a == lowercase(c)
         f(c) = reactall!(polymer[@. !same(polymer,c)])
-        minimum(f.(Int8.('A':'Z')))
+        minimum(f.('A':'Z'))
     end
 end
 
@@ -192,30 +193,29 @@ function solve(day::Val{7}, part, lines)
             o *= a
             filter!(d -> first(d) != a, data)
             filter!(!isequal(a), l)
-            length(l) > 0 || break
+            isempty(l) && return o
         end
-        o
 
     else # part 2
         on = Vector{Union{Char, Nothing}}(nothing, 5)
-        til = zeros(Int, 5)
+        til = fill(0, 5)
         while true
-            (t, i) = findmin(til)
-            a = on[i]
-            filter!(d -> first(d) != a, data)
-            l2 = unique(second.(data))
-            s = setdiff(l, l2)
-            if isempty(s)
-                @assert !all(on .== nothing)
-                on[i] = nothing
-                til[i] = t+1
-            else
-                on[i] = minimum(s)
-                til[i] = t + 61 + on[i]-'A'
-                filter!(!isequal(on[i]), l)
-                length(l) > 0 || break
+            t = minimum(til)
+            for i in findall(til .== t)
+                a = on[i]
+                filter!(d -> first(d) != a, data)
+                l2 = unique(second.(data))
+                s = setdiff(l, l2)
+                if isempty(s)
+                    on[i] = nothing
+                    til[i] = minimum(til[on.!=nothing])
+                else
+                    on[i] = minimum(s)
+                    til[i] = t + 61 + on[i]-'A'
+                    filter!(!isequal(on[i]), l)
+                    isempty(l) && return maximum(til)
+                end
             end
         end
-        maximum(til)
     end
 end
