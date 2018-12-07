@@ -180,23 +180,13 @@ end
 
 function solve(day::Val{7}, part, lines)
     data = scan.(day, lines)
-    o = ""
-    l = unique(Iterators.flatten(data))
-    second(x) = x[2]
 
-    if part === Val(1)
-        while true
-            l2 = unique(second.(data))
-            a = minimum(setdiff(l, l2))
-            o *= a
-            filter!(d -> first(d) != a, data)
-            filter!(!isequal(a), l)
-            isempty(l) && return o
-        end
-
-    else # part 2
-        on = Vector{Union{Char, Nothing}}(nothing, 5)
-        til = fill(0, 5)
+    function work(data, N)
+        o = Char[]
+        l = unique(Iterators.flatten(data))
+        second(x) = x[2]
+        on = Vector{Union{Char, Nothing}}(nothing, N)
+        til = fill(0, N)
         while true
             t = minimum(til)
             for i in findall(til .== t)
@@ -209,11 +199,18 @@ function solve(day::Val{7}, part, lines)
                     til[i] = minimum(til[on.!=nothing])
                 else
                     on[i] = minimum(s)
+                    push!(o, on[i])
                     til[i] = t + 61 + on[i]-'A'
                     filter!(!isequal(on[i]), l)
-                    isempty(l) && return maximum(til)
+                    isempty(l) && return (o, maximum(til))
                 end
             end
         end
+    end
+
+    if part === Val(1)
+        String(work(data, 1)[1])
+    else # part 2
+        work(data, 5)[2]
     end
 end
