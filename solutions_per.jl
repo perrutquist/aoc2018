@@ -6,8 +6,10 @@ scan(::Val{1}, line) = parse(Int, line)
 
 function solve(day::Val{1}, part, lines)
     data = scan.(day, lines)
+
     if part === Val(1)
         sum(data)
+
     else
         f = 0
         s = Set([0])
@@ -25,9 +27,11 @@ scan(::Val{2}, line) = Vector{Char}(line)
 
 function solve(day::Val{2}, part, lines)
     data = scan.(day, lines)
+
     if part === Val(1)
         ismatch(v, n) = any(map(c -> sum(v .== c) == n, v))
         sum(ismatch.(data, 2)) * sum(ismatch.(data, 3))
+
     else # part 2
         for a in data, b in data
             sum(a .!= b) == 1 && return String(a[a .== b])
@@ -49,8 +53,10 @@ function solve(day::Val{3}, part, lines)
     for c in data
         M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .+= 1
     end
+
     if part === Val(1)
         sum(M .> 1)
+
     else # part 2
         for c in data
             all(M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .== 1) && return c[1]
@@ -86,9 +92,8 @@ function solve(day::Val{4}, part, lines)
         (t, id) = f(M, t, id)
     end
     D = Dict([key => (part === Val(1) ? sum(val) : maximum(val)) for (key, val) in M])
-    (xx, ix) = findmax(D)
-    (xx, mn) = findmax(M[ix])
-    ix*(mn-1)
+    ix = argmax(D)
+    ix*(argmax(M[ix])-1)
 end
 
 # ----------------------------- Day  5 ---------------------------------------
@@ -126,21 +131,17 @@ function scan(::Val{6}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
-manhattan(a, b) = sum(@. abs(a-b))
-
 function solve(day::Val{6}, part, lines)
     data = scan.(day, lines)
-
+    manhattan(a, b) = sum(@. abs(a-b))
     (n,m) = reduce((a,b)->min.(a,b), data)
     (N,M) = reduce((a,b)->max.(a,b), data)
-
     D = OffsetArray{Int,2}(undef, n:N, m:M)
     C = Tuple.(CartesianIndices(D))
 
     if part == Val(1)
         K = similar(D)
         dst = similar(D)
-
         D .= typemax(Int)
         for k in eachindex(data)
             p = data[k]
@@ -158,6 +159,7 @@ function solve(day::Val{6}, part, lines)
         end
 
         maximum(area.(eachindex(data)))
+
     else # part 2
         R = 10000 # sum of distances must be less than this
         # Note: The below code will not work for arbitrarily large R.
@@ -167,5 +169,53 @@ function solve(day::Val{6}, part, lines)
             @. D += manhattan(C, (p,))
         end
         sum(D .< R)
+    end
+end
+
+# ----------------------------- Day  7 ---------------------------------------
+
+function scan(::Val{7}, line)
+    m = match(r"Step (.) must be finished before step (.) can begin.", line)
+    first.(Tuple(m.captures))
+end
+
+function solve(day::Val{7}, part, lines)
+    data = scan.(day, lines)
+    o = ""
+    l = unique(Iterators.flatten(data))
+    second(x) = x[2]
+
+    if part === Val(1)
+        while true
+            l2 = unique(second.(data))
+            a = minimum(setdiff(l, l2))
+            o *= a
+            filter!(d -> first(d) != a, data)
+            filter!(!isequal(a), l)
+            length(l) > 0 || break
+        end
+        o
+
+    else # part 2
+        on = Vector{Union{Char, Nothing}}(nothing, 5)
+        til = zeros(Int, 5)
+        while true
+            (t, i) = findmin(til)
+            a = on[i]
+            filter!(d -> first(d) != a, data)
+            l2 = unique(second.(data))
+            s = setdiff(l, l2)
+            if isempty(s)
+                @assert !all(on .== nothing)
+                on[i] = nothing
+                til[i] = t+1
+            else
+                on[i] = minimum(s)
+                til[i] = t + 61 + on[i]-'A'
+                filter!(!isequal(on[i]), l)
+                length(l) > 0 || break
+            end
+        end
+        maximum(til)
     end
 end
