@@ -101,7 +101,7 @@ end
 scan(::Val{5}, line) = Vector{Char}(line)
 
 function solve(day::Val{5}, part, lines)
-    polymer = scan.(day, lines)[1]
+    polymer = scan(day, lines[1])
 
     function react(p, skip=nothing)
         o = Char[]
@@ -130,7 +130,7 @@ function scan(::Val{6}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
-function solve(day::Val{6}, part, lines)
+function solve(day::Val{6}, part, lines; R = 10000)
     data = scan.(day, lines)
     manhattan(a, b) = sum(@. abs(a-b))
     (n,m) = reduce((a,b)->min.(a,b), data)
@@ -160,9 +160,7 @@ function solve(day::Val{6}, part, lines)
         maximum(area.(eachindex(data)))
 
     else # part 2
-        R = 10000 # sum of distances must be less than this
         # Note: The below code will not work for arbitrarily large R.
-
         D .= 0
         for p in data
             @. D += manhattan(C, (p,))
@@ -178,7 +176,7 @@ function scan(::Val{7}, line)
     first.(Tuple(m.captures))
 end
 
-function solve(day::Val{7}, part, lines)
+function solve(day::Val{7}, part, lines; N=5, D=60)
     data = scan.(day, lines)
 
     function work(data, N)
@@ -200,7 +198,7 @@ function solve(day::Val{7}, part, lines)
                 else
                     on[i] = minimum(s)
                     push!(o, on[i])
-                    til[i] = t + 61 + on[i]-'A'
+                    til[i] = t + D + 1 + on[i] - 'A'
                     filter!(!isequal(on[i]), l)
                     isempty(l) && return (o, maximum(til))
                 end
@@ -211,7 +209,7 @@ function solve(day::Val{7}, part, lines)
     if part === Val(1)
         String(work(data, 1)[1])
     else # part 2
-        work(data, 5)[2]
+        work(data, N)[2]
     end
 end
 
@@ -222,7 +220,7 @@ function scan(::Val{8}, line)
 end
 
 function solve(day::Val{8}, ::Val{P}, lines) where P
-    data = scan.(day, lines)[1]
+    data = scan(day, lines[1])
 
     function sm(i)
         n = data[i]
@@ -238,7 +236,7 @@ function solve(day::Val{8}, ::Val{P}, lines) where P
         (
         r+m,
         s+sum(meta),
-        isempty(v) ? sum(meta) : mapreduce(k -> checkbounds(Bool, v, k) ? v[k] : 0, +, meta)
+        sum(k -> isempty(v) ? k : checkbounds(Bool, v, k) ? v[k] : 0, meta)
         )
     end
     sm(1)[P+1]

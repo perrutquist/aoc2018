@@ -17,8 +17,8 @@ function getlines(day)
 end
 
 "Solve the problem for a given day and part, given a vector of scanned lines."
-solve(day::Integer, part::Integer, v) = solve(Val(Int(day)), Val(Int(part)), v)
-solve(::Val, p, v) = nothing # fallback
+solve(day::Integer, part::Integer, v; kwargs...) = solve(Val(Int(day)), Val(Int(part)), v; kwargs...)
+solve(::Val, p, v; kwargs...) = nothing # fallback
 
 const lines = Array{Any,1}(undef, 25) # raw input as list of strings
 const solution = Array{Any,2}(undef, 25, 2)
