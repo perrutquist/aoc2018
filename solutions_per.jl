@@ -214,3 +214,32 @@ function solve(day::Val{7}, part, lines)
         work(data, 5)[2]
     end
 end
+
+# ----------------------------- Day  8 ---------------------------------------
+
+function scan(::Val{8}, line)
+    parse.(Int, split(line, " "))
+end
+
+function solve(day::Val{8}, ::Val{P}, lines) where P
+    data = scan.(day, lines)[1]
+
+    function sm(i)
+        n = data[i]
+        m = data[i+1]
+        s = 0
+        r = i+2
+        v = zeros(Int, n)
+        for k in 1:n
+            (r, sk, v[k]) = sm(r)
+            s += sk
+        end
+        meta = data[r:r+m-1]
+        (
+        r+m,
+        s+sum(meta),
+        isempty(v) ? sum(meta) : mapreduce(k -> checkbounds(Bool, v, k) ? v[k] : 0, +, meta)
+        )
+    end
+    sm(1)[P+1]
+end
