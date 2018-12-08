@@ -212,7 +212,7 @@ function scan(::Val{8}, line)
     parse.(Int, split(line, " "))
 end
 
-function solve(day::Val{8}, ::Val{P}, lines) where P
+function solve(day::Val{8}, ::Val{part}, lines) where part
     data = scan(day, lines[1])
 
     function sm(i)
@@ -232,5 +232,5 @@ function solve(day::Val{8}, ::Val{P}, lines) where P
         sum(k -> isempty(v) ? k : checkbounds(Bool, v, k) ? v[k] : 0, meta)
         )
     end
-    sm(1)[P+1]
+    sm(1)[part+1]
 end
