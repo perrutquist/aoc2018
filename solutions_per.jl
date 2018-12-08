@@ -149,14 +149,7 @@ function solve(day::Val{6}, part, lines; R = 10000)
             @. D = min(D, dst)
         end
 
-        function area(i)
-            any(K[n,:] .== i) && return -1
-            any(K[N,:] .== i) && return -1
-            any(K[:,m] .== i) && return -1
-            any(K[:,M] .== i) && return -1
-            sum(K .== i)
-        end
-
+        area(i) = any(K[[n, N], :] .== i) || any(K[:, [m, M]] .== i) ? -1 : sum(K .== i)
         maximum(area.(eachindex(data)))
 
     else # part 2
