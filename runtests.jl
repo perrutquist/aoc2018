@@ -135,3 +135,12 @@ L[day] = lines("""
 
 @test AoC.solve(day, 1, L[day]) == 138
 @test AoC.solve(day, 2, L[day]) == 66
+
+
+day = 9
+
+L[day] = lines("""
+""")
+
+@test AoC.solve(day, 1, L[day]) == 0
+@test AoC.solve(day, 2, L[day]) == 0

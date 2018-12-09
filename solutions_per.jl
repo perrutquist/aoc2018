@@ -234,3 +234,48 @@ function solve(day::Val{8}, ::Val{part}, lines) where part
     end
     sm(1)[part+1]
 end
+
+# ----------------------------- Day  9 ---------------------------------------
+
+function scan(::Val{9}, line)
+    m = match(r"(\d*) players; last marble is worth (\d*) points", line)
+    parse.((Int, Int), Tuple(m.captures))
+end
+
+function solve(day::Val{9}, ::Val{part}, lines) where part
+    (P, N) = scan(day, lines[1])
+
+    if part==2
+        N = 100*N
+    end
+
+    score = zeros(Int, P)
+    ci = Int[]
+    cc = Int[]
+    cr = Int[0]
+    ri = 1
+    for i in 1:N
+        p = mod(i-1, P)+1
+        if mod(i, 23)==0
+            score[p] += i
+            for k in 1:7
+               push!(cc, isempty(ci) ? pop!(cr) : pop!(ci))
+            end
+            score[p] += isempty(ci) ? pop!(cr) : pop!(ci)
+            push!(ci, pop!(cc))
+        else
+            if isempty(cc)
+                push!(ci, cr[ri], i)
+                ri += 1
+            else
+                push!(ci, pop!(cc), i)
+            end
+            if ri > length(cr)
+                cr = ci
+                ci = []
+                ri = 1
+            end
+        end
+    end
+    maximum(score)
+end
