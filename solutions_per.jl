@@ -1,4 +1,5 @@
 using OffsetArrays
+using DataStructures
 
 # ----------------------------- Day  1 ---------------------------------------
 
@@ -41,7 +42,7 @@ end
 
 # ----------------------------- Day  3 ---------------------------------------
 
-function scan(::Val{3}, line)
+function scan(::Val{3}, line)::NTuple{5,Int}
     m = match(r"#(\d*) @ (\d*),(\d*): (\d*)x(\d*)", line)
     parse.((Int, Int, Int, Int, Int), Tuple(m.captures))
 end
@@ -234,40 +235,32 @@ function scan(::Val{9}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
-mutable struct Marble
-    val::Int
-    prev::Marble
-    next::Marble
-    Marble(i) = new(i)
-end
-
 function solve(day::Val{9}, ::Val{part}, lines) where part
     (P, N) = scan(day, lines[1])
 
     function game(P, N)
-        function link(a,b)
-            a.next = b
-            b.prev = a
-        end
-
+        c1 = CircularDeque{Int}(N)
+        c2 = CircularDeque{Int}(N)
         score = zeros(Int, P)
-        c = Marble(0)
-        c.prev = c
-        c.next = c
-        for n in Marble.(1:N)
-            if mod(n.val, 23)==0
+        push!(c1, 0)
+        for i in 1:N
+            if mod(i, 23)==0
                 for k in 1:7
-                   c = c.prev
+                    pushfirst!(c2, pop!(c1))
+                    if isempty(c1)
+                        (c1, c2) = (c2, c1)
+                    end
                 end
-                score[mod(n.val,P)+1] += c.val + n.val
-                link(c.prev, c.next)
-                c = c.next
+                score[mod(i, P) + 1] += i + pop!(c1)
+                push!(c1, popfirst!(c2))
             else
-                c = c.next
-                link(n, c.next)
-                link(c, n)
-                c = n
+                if isempty(c2)
+                    (c1, c2) = (c2, c1)
+                end
+                push!(c1, popfirst!(c2))
+                push!(c1, i)
             end
+            #@show [collect(c1); -1; collect(c2)]
         end
         maximum(score)
     end
