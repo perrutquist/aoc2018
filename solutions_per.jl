@@ -126,7 +126,7 @@ end
 
 # ----------------------------- Day  6 ---------------------------------------
 
-function scan(::Val{6}, line)::Tuple{Int,Int}
+function scan(::Val{6}, line)
     m = match(r"(\d*), (\d*)", line)
     parse.((Int, Int), Tuple(m.captures))
 end
@@ -165,37 +165,45 @@ end
 
 # ----------------------------- Day  7 ---------------------------------------
 
-function scan(::Val{7}, line)::Tuple{Char,Char}
+function scan(::Val{7}, line)
     m = match(r"Step (.) must be finished before step (.) can begin.", line)
     first.(Tuple(m.captures))
 end
 
-function solve(day::Val{7}, ::Val{part}, lines; N = part==1 ? 1 : 5, D=60) where part
+function solve(day::Val{7}, part, lines; N=5, D=60)
     data = scan.(day, lines)
 
-    o = Char[]
-    l = unique(Iterators.flatten(data))
-    second(x) = x[2]
-    on = Vector{Union{Char, Nothing}}(nothing, N)
-    til = fill(0, N)
-    while true
-        t = minimum(til)
-        for i in findall(til .== t)
-            a = on[i]
-            filter!(d -> first(d) != a, data)
-            l2 = unique(second.(data))
-            s = setdiff(l, l2)
-            if isempty(s)
-                on[i] = nothing
-                til[i] = minimum(til[on.!=nothing])
-            else
-                on[i] = minimum(s)
-                push!(o, on[i])
-                til[i] = t + D + 1 + on[i] - 'A'
-                filter!(!isequal(on[i]), l)
-                isempty(l) && return part == 1 ? String(o) : maximum(til)
+    function work(data, N)
+        o = Char[]
+        l = unique(Iterators.flatten(data))
+        second(x) = x[2]
+        on = Vector{Union{Char, Nothing}}(nothing, N)
+        til = fill(0, N)
+        while true
+            t = minimum(til)
+            for i in findall(til .== t)
+                a = on[i]
+                filter!(d -> first(d) != a, data)
+                l2 = unique(second.(data))
+                s = setdiff(l, l2)
+                if isempty(s)
+                    on[i] = nothing
+                    til[i] = minimum(til[on.!=nothing])
+                else
+                    on[i] = minimum(s)
+                    push!(o, on[i])
+                    til[i] = t + D + 1 + on[i] - 'A'
+                    filter!(!isequal(on[i]), l)
+                    isempty(l) && return (o, maximum(til))
+                end
             end
         end
+    end
+
+    if part === Val(1)
+        String(work(data, 1)[1])
+    else # part 2
+        work(data, N)[2]
     end
 end
 
@@ -235,35 +243,42 @@ function scan(::Val{9}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
+
+mutable struct Marble
+    val::Int
+    prev::Marble
+    next::Marble
+    function Marble(i)
+        x = new(i)
+        x.prev = x
+        x.next = x
+    end
+end
+
 function solve(day::Val{9}, ::Val{part}, lines) where part
     (P, N) = scan(day, lines[1])
 
-    function game(P, N)
-        c1 = CircularDeque{Int}(N)
-        c2 = CircularDeque{Int}(N)
-        score = zeros(Int, P)
-        push!(c1, 0)
-        for i in 1:N
-            if mod(i, 23)==0
-                for k in 1:7
-                    pushfirst!(c2, pop!(c1))
-                    if isempty(c1)
-                        (c1, c2) = (c2, c1)
-                    end
-                end
-                score[mod(i, P) + 1] += i + pop!(c1)
-                push!(c1, popfirst!(c2))
-            else
-                if isempty(c2)
-                    (c1, c2) = (c2, c1)
-                end
-                push!(c1, popfirst!(c2))
-                push!(c1, i)
-            end
-            #@show [collect(c1); -1; collect(c2)]
-        end
-        maximum(score)
+    function link(a,b)
+        a.next = b
+        b.prev = a
     end
 
-    game(P, part==1 ? N : 100*N)
+    score = zeros(Int, P)
+    c = Marble(0)
+    for n in Marble.(1:(part==2 ? 100*N : N))
+        if mod(n.val, 23)==0
+            for k in 1:7
+               c = c.prev
+            end
+            score[mod(n.val,P)+1] += c.val + n.val
+            link(c.prev, c.next)
+            c = c.next
+        else
+            c = c.next
+            link(n, c.next)
+            link(c, n)
+            c = n
+        end
+    end
+    maximum(score)
 end
