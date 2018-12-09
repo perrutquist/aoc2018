@@ -247,8 +247,7 @@ mutable struct Marble
     prev::Marble
     next::Marble
     function Marble(i)
-        x = new()
-        x.val = i
+        x = new(i)
         x.prev = x
         x.next = x
     end
