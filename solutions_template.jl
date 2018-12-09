@@ -5,12 +5,12 @@
 
 scan(::Val{1}, line) = line
 
-function solve(day::Val{1}, part, lines)
+function solve(day::Val{1}, ::Val{part}, lines) where part
     data = scan.(day, lines)
 
-    if part === Val(1)
+    if part == 1
 
-    else
+    else # part 2
 
     end
 end
@@ -19,12 +19,12 @@ end
 
 scan(::Val{2}, line) = line
 
-function solve(day::Val{2}, part, lines)
+function solve(day::Val{2}, ::Val{part}, lines) where part
     data = scan.(day, lines)
 
-    if part === Val(1)
+    if part == 1
 
-    else
+    else # part 2
 
     end
 end
