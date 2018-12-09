@@ -125,7 +125,7 @@ end
 
 # ----------------------------- Day  6 ---------------------------------------
 
-function scan(::Val{6}, line)
+function scan(::Val{6}, line)::Tuple{Int,Int}
     m = match(r"(\d*), (\d*)", line)
     parse.((Int, Int), Tuple(m.captures))
 end
@@ -164,45 +164,37 @@ end
 
 # ----------------------------- Day  7 ---------------------------------------
 
-function scan(::Val{7}, line)
+function scan(::Val{7}, line)::Tuple{Char,Char}
     m = match(r"Step (.) must be finished before step (.) can begin.", line)
     first.(Tuple(m.captures))
 end
 
-function solve(day::Val{7}, part, lines; N=5, D=60)
+function solve(day::Val{7}, ::Val{part}, lines; N = part==1 ? 1 : 5, D=60) where part
     data = scan.(day, lines)
 
-    function work(data, N)
-        o = Char[]
-        l = unique(Iterators.flatten(data))
-        second(x) = x[2]
-        on = Vector{Union{Char, Nothing}}(nothing, N)
-        til = fill(0, N)
-        while true
-            t = minimum(til)
-            for i in findall(til .== t)
-                a = on[i]
-                filter!(d -> first(d) != a, data)
-                l2 = unique(second.(data))
-                s = setdiff(l, l2)
-                if isempty(s)
-                    on[i] = nothing
-                    til[i] = minimum(til[on.!=nothing])
-                else
-                    on[i] = minimum(s)
-                    push!(o, on[i])
-                    til[i] = t + D + 1 + on[i] - 'A'
-                    filter!(!isequal(on[i]), l)
-                    isempty(l) && return (o, maximum(til))
-                end
+    o = Char[]
+    l = unique(Iterators.flatten(data))
+    second(x) = x[2]
+    on = Vector{Union{Char, Nothing}}(nothing, N)
+    til = fill(0, N)
+    while true
+        t = minimum(til)
+        for i in findall(til .== t)
+            a = on[i]
+            filter!(d -> first(d) != a, data)
+            l2 = unique(second.(data))
+            s = setdiff(l, l2)
+            if isempty(s)
+                on[i] = nothing
+                til[i] = minimum(til[on.!=nothing])
+            else
+                on[i] = minimum(s)
+                push!(o, on[i])
+                til[i] = t + D + 1 + on[i] - 'A'
+                filter!(!isequal(on[i]), l)
+                isempty(l) && return part == 1 ? String(o) : maximum(til)
             end
         end
-    end
-
-    if part === Val(1)
-        String(work(data, 1)[1])
-    else # part 2
-        work(data, N)[2]
     end
 end
 
@@ -246,37 +238,39 @@ mutable struct Marble
     val::Int
     prev::Marble
     next::Marble
-    function Marble(i)
-        x = new(i)
-        x.prev = x
-        x.next = x
-    end
+    Marble(i) = new(i)
 end
 
 function solve(day::Val{9}, ::Val{part}, lines) where part
     (P, N) = scan(day, lines[1])
 
-    function link(a,b)
-        a.next = b
-        b.prev = a
+    function game(P, N)
+        function link(a,b)
+            a.next = b
+            b.prev = a
+        end
+
+        score = zeros(Int, P)
+        c = Marble(0)
+        c.prev = c
+        c.next = c
+        for n in Marble.(1:N)
+            if mod(n.val, 23)==0
+                for k in 1:7
+                   c = c.prev
+                end
+                score[mod(n.val,P)+1] += c.val + n.val
+                link(c.prev, c.next)
+                c = c.next
+            else
+                c = c.next
+                link(n, c.next)
+                link(c, n)
+                c = n
+            end
+        end
+        maximum(score)
     end
 
-    score = zeros(Int, P)
-    c = Marble(0)
-    for n in Marble.(1:(part==2 ? 100*N : N))
-        if mod(n.val, 23)==0
-            for k in 1:7
-               c = c.prev
-            end
-            score[mod(n.val,P)+1] += c.val + n.val
-            link(c.prev, c.next)
-            c = c.next
-        else
-            c = c.next
-            link(n, c.next)
-            link(c, n)
-            c = n
-        end
-    end
-    maximum(score)
+    game(P, part==1 ? N : 100*N)
 end
