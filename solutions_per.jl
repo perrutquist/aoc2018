@@ -242,39 +242,42 @@ function scan(::Val{9}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
+mutable struct Marble
+    val::Int
+    prev::Marble
+    next::Marble
+    function Marble(i)
+        x = new()
+        x.val = i
+        x.prev = x
+        x.next = x
+    end
+end
+
 function solve(day::Val{9}, ::Val{part}, lines) where part
     (P, N) = scan(day, lines[1])
 
-    if part==2
-        N = 100*N
+    function link(a,b)
+        a.next = b
+        b.prev = a
     end
 
     score = zeros(Int, P)
-    ci = Int[]
-    cc = Int[]
-    cr = Int[0]
-    ri = 1
-    for i in 1:N
-        p = mod(i-1, P)+1
+    c = Marble(0)
+    for i in 1:(part==2 ? 100*N : N)
         if mod(i, 23)==0
-            score[p] += i
             for k in 1:7
-               push!(cc, isempty(ci) ? pop!(cr) : pop!(ci))
+               c = c.prev
             end
-            score[p] += isempty(ci) ? pop!(cr) : pop!(ci)
-            push!(ci, pop!(cc))
+            score[mod(i,P)+1] += c.val + i
+            link(c.prev, c.next)
+            c = c.next
         else
-            if isempty(cc)
-                push!(ci, cr[ri], i)
-                ri += 1
-            else
-                push!(ci, pop!(cc), i)
-            end
-            if ri > length(cr)
-                cr = ci
-                ci = []
-                ri = 1
-            end
+            n = Marble(i)
+            c = c.next
+            link(n, c.next)
+            link(c, n)
+            c = n
         end
     end
     maximum(score)
