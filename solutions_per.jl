@@ -264,16 +264,15 @@ function solve(day::Val{9}, ::Val{part}, lines) where part
 
     score = zeros(Int, P)
     c = Marble(0)
-    for i in 1:(part==2 ? 100*N : N)
-        if mod(i, 23)==0
+    for n in Marble.(1:(part==2 ? 100*N : N))
+        if mod(n.val, 23)==0
             for k in 1:7
                c = c.prev
             end
-            score[mod(i,P)+1] += c.val + i
+            score[mod(i,P)+1] += c.val + n.val
             link(c.prev, c.next)
             c = c.next
         else
-            n = Marble(i)
             c = c.next
             link(n, c.next)
             link(c, n)
