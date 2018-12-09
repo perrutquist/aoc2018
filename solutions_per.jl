@@ -269,7 +269,7 @@ function solve(day::Val{9}, ::Val{part}, lines) where part
             for k in 1:7
                c = c.prev
             end
-            score[mod(i,P)+1] += c.val + n.val
+            score[mod(n.val,P)+1] += c.val + n.val
             link(c.prev, c.next)
             c = c.next
         else
