@@ -1,14 +1,14 @@
 using OffsetArrays
-using DataStructures
+using Plots
 
 # ----------------------------- Day  1 ---------------------------------------
 
 scan(::Val{1}, line) = parse(Int, line)
 
-function solve(day::Val{1}, part, lines)
+function solve(day::Val{1}, ::Val{part}, lines) where part
     data = scan.(day, lines)
 
-    if part === Val(1)
+    if part ==1
         sum(data)
 
     else
@@ -26,10 +26,10 @@ end
 
 scan(::Val{2}, line) = Vector{Char}(line)
 
-function solve(day::Val{2}, part, lines)
+function solve(day::Val{2}, ::Val{part}, lines) where part
     data = scan.(day, lines)
 
-    if part === Val(1)
+    if part == 1
         ismatch(v, n) = any(map(c -> sum(v .== c) == n, v))
         sum(ismatch.(data, 2)) * sum(ismatch.(data, 3))
 
@@ -47,7 +47,7 @@ function scan(::Val{3}, line)::NTuple{5,Int}
     parse.((Int, Int, Int, Int, Int), Tuple(m.captures))
 end
 
-function solve(day::Val{3}, part, lines)
+function solve(day::Val{3}, ::Val{part}, lines) where part
     data = scan.(day, lines)
     mx = reduce((a,b) -> max.(a,b), data)
     M = zeros(Int, mx[2]+mx[4], mx[3]+mx[5])
@@ -55,7 +55,7 @@ function solve(day::Val{3}, part, lines)
         M[c[2]+1:c[2]+c[4], c[3]+1:c[3]+c[5]] .+= 1
     end
 
-    if part === Val(1)
+    if part == 1
         sum(M .> 1)
 
     else # part 2
@@ -85,14 +85,14 @@ function scan(::Val{4}, line)
     end
 end
 
-function solve(day::Val{4}, part, lines)
+function solve(day::Val{4}, ::Val{part}, lines) where part
     data = scan.(day, sort(lines)) # global D4 will be useless because it doesn't get sorted
     M = Dict{Int, Vector{Int}}()
     (t, id) = data[1](M, -1, 0)
     for f in data[2:end]
         (t, id) = f(M, t, id)
     end
-    D = Dict([key => (part === Val(1) ? sum(val) : maximum(val)) for (key, val) in M])
+    D = Dict([key => (part == 1 ? sum(val) : maximum(val)) for (key, val) in M])
     ix = argmax(D)
     ix*(argmax(M[ix])-1)
 end
@@ -101,7 +101,7 @@ end
 
 scan(::Val{5}, line) = Vector{Char}(line)
 
-function solve(day::Val{5}, part, lines)
+function solve(day::Val{5}, ::Val{part}, lines) where part
     polymer = scan(day, lines[1])
 
     function react(p, skip=nothing)
@@ -117,7 +117,7 @@ function solve(day::Val{5}, part, lines)
         length(o)
     end
 
-    if part === Val(1)
+    if part == 1
         react(polymer)
     else # part 2
         minimum(react.((polymer,), 'A':'Z'))
@@ -131,7 +131,7 @@ function scan(::Val{6}, line)
     parse.((Int, Int), Tuple(m.captures))
 end
 
-function solve(day::Val{6}, part, lines; R = 10000)
+function solve(day::Val{6}, ::Val{part}, lines; R = 10000) where part
     data = scan.(day, lines)
     manhattan(a, b) = sum(@. abs(a-b))
     (n,m) = reduce((a,b)->min.(a,b), data)
@@ -139,7 +139,7 @@ function solve(day::Val{6}, part, lines; R = 10000)
     D = OffsetArray{Int,2}(undef, n:N, m:M)
     C = Tuple.(CartesianIndices(D))
 
-    if part == Val(1)
+    if part == 1
         K = similar(D)
         dst = similar(D)
         D .= typemax(Int)
@@ -165,45 +165,37 @@ end
 
 # ----------------------------- Day  7 ---------------------------------------
 
-function scan(::Val{7}, line)
+function scan(::Val{7}, line)::NTuple{2, Char}
     m = match(r"Step (.) must be finished before step (.) can begin.", line)
     first.(Tuple(m.captures))
 end
 
-function solve(day::Val{7}, part, lines; N=5, D=60)
+function solve(day::Val{7}, ::Val{part}, lines; N = part==1 ? 1 : 5, D = 60) where part
     data = scan.(day, lines)
 
-    function work(data, N)
-        o = Char[]
-        l = unique(Iterators.flatten(data))
-        second(x) = x[2]
-        on = Vector{Union{Char, Nothing}}(nothing, N)
-        til = fill(0, N)
-        while true
-            t = minimum(til)
-            for i in findall(til .== t)
-                a = on[i]
-                filter!(d -> first(d) != a, data)
-                l2 = unique(second.(data))
-                s = setdiff(l, l2)
-                if isempty(s)
-                    on[i] = nothing
-                    til[i] = minimum(til[on.!=nothing])
-                else
-                    on[i] = minimum(s)
-                    push!(o, on[i])
-                    til[i] = t + D + 1 + on[i] - 'A'
-                    filter!(!isequal(on[i]), l)
-                    isempty(l) && return (o, maximum(til))
-                end
+    o = Char[]
+    l = unique(Iterators.flatten(data))
+    second(x) = x[2]
+    on = Vector{Union{Char, Nothing}}(nothing, N)
+    til = fill(0, N)
+    while true
+        t = minimum(til)
+        for i in findall(til .== t)
+            a = on[i]
+            filter!(d -> first(d) != a, data)
+            l2 = unique(second.(data))
+            s = setdiff(l, l2)
+            if isempty(s)
+                on[i] = nothing
+                til[i] = minimum(til[on.!=nothing])
+            else
+                on[i] = minimum(s)
+                push!(o, on[i])
+                til[i] = t + D + 1 + on[i] - 'A'
+                filter!(!isequal(on[i]), l)
+                isempty(l) && return part==1 ? String(o) : maximum(til)
             end
         end
-    end
-
-    if part === Val(1)
-        String(work(data, 1)[1])
-    else # part 2
-        work(data, N)[2]
     end
 end
 
@@ -240,9 +232,8 @@ end
 
 function scan(::Val{9}, line)::NTuple{2, Int}
     m = match(r"(\d*) players; last marble is worth (\d*) points", line)
-    parse.((Int, Int), Tuple(m.captures))
+    parse.(Int, Tuple(m.captures))
 end
-
 
 mutable struct Marble
     val::Int
@@ -252,6 +243,7 @@ mutable struct Marble
         x = new(i)
         x.prev = x
         x.next = x
+        x
     end
 end
 
@@ -284,11 +276,10 @@ function solve(day::Val{9}, ::Val{part}, lines) where part
 end
 
 # ----------------------------- Day  10 ---------------------------------------
-using Plots
 
 function scan(::Val{10}, line)::NTuple{4, Float64}
     m = match(r"position=< *(-?\d*), *(-?\d*)> velocity=< *(-?\d*), *(-?\d*)>", line)
-    parse.((Int, Int, Int, Int), Tuple(m.captures))
+    parse.(Float64, Tuple(m.captures))
 end
 
 function solve(day::Val{10}, ::Val{part}, lines) where part
