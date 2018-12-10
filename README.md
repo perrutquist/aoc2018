@@ -23,7 +23,14 @@ It is convenient to start each `solve` method with `data = scan.(day, lines)`, w
 scan(::Val{1}, line) = parse(Int, line)
 ```
 
-Store the input data for day `1` as a file named `input1.txt`, and so on. Then run `include("aoc2018.jl")` from the Julia REPL. The `solve` function will be solved for each day (1-25) and part (1-2).
+Store the input data for day `1` as a file named `input1.txt`, and so on. Then run `include("aoc2018.jl")` from the Julia REPL. The `solve` function will be called for each day (1-25) and part (1-2), something like:
+```
+for day in 1:25
+    for part in 1:2
+        println("Day $day, part $part: ", solve(Val(day), Val(part), readlines("input$day.txt")))
+     end
+end
+```
 
 Re-running the `include` command will replace the entire module, re-scan all data, and re-run the computations. (No need to restart Julia.)
 
