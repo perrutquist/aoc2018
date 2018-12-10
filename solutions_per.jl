@@ -282,3 +282,36 @@ function solve(day::Val{9}, ::Val{part}, lines) where part
     end
     maximum(score)
 end
+
+# ----------------------------- Day  10 ---------------------------------------
+using Plots
+
+function scan(::Val{10}, line)::NTuple{4, Int}
+    m = match(r"position=< *(-?\d*), *(-?\d*)> velocity=< *(-?\d*), *(-?\d*)>", line)
+    parse.((Int, Int, Int, Int), Tuple(m.captures))
+end
+
+function solve(day::Val{10}, ::Val{part}, lines) where part
+    data = scan.(day, lines)
+
+    p = getindex.(data, [1 2])
+    v = getindex.(data, [3 4])
+    dp = typemax(Int)
+    d = dp-1
+    s = -1
+    while d < dp
+        s += 1
+        dp = d
+        p .+= v
+        d = minimum(maximum(p, dims=1) .- minimum(p, dims=1))
+    end
+    p .-= v
+
+    if part == 1
+        plot(p[:,1], -p[:,2], seriestype=:scatter, legend=false)
+        gui()
+        return :solution_has_been_plotted
+    else # part 2
+        s
+    end
+end
