@@ -147,6 +147,7 @@ L[day] = lines("""
 @test AoC.solve(day, 2, L[day]) == 74765078
 
 day = 10
+
 L[day] = lines("""
 position=< 9,  1> velocity=< 0,  2>
 position=< 7,  0> velocity=<-1,  0>
@@ -181,7 +182,16 @@ position=<14,  7> velocity=<-2,  0>
 position=<-3,  6> velocity=< 2, -1>
 """)
 
-# No test for part 1, but run the code
 AoC.solve(day, 1, L[day])
+println("Manually verify that the plot shows \"HI\"")
 
 @test AoC.solve(day, 2, L[day]) == 3
+
+day = 11
+
+L[day] = lines("""
+18
+""")
+
+@test AoC.solve(day, 1, L[day]) == "33,45"
+@test AoC.solve(day, 2, L[day]) == "90,269,16"
