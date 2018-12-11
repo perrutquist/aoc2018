@@ -2,6 +2,7 @@ module AoC
 
 using InteractiveUtils # for copying to clipboard
 using Printf
+using BenchmarkTools
 
 include("solutions_per.jl") # Change this line to use your own code instead
 
@@ -82,6 +83,28 @@ function solveall(;reverse=false, clipboard=false, setglobals=false, twice=false
         #Printf.@printf("Total time, including file reads: %.2f seconds.\n", 1e-9*(time_ns()-t0))
     else
         println("No data files found!")
+    end
+end
+
+"""
+   benchmarks()
+
+Loop over puzzles and print benchmark results.
+Each benchmark is calculated by taking the minimum time over a large number of runs.
+"""
+function benchmarks()
+    for day in 1:25
+        ld = getlines(day)
+        if ld !== nothing
+            lines[day] = ld
+            for part in 1:2
+                r = solve(day, part, deepcopy(ld))
+                if r !== nothing
+                    print("Day $day, part $part: ")
+                    @btime solve($day, $part, l) setup=(l=deepcopy($ld))
+                end
+            end
+        end
     end
 end
 

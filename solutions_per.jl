@@ -275,7 +275,7 @@ function solve(day::Val{9}, ::Val{part}, lines) where part
     maximum(score)
 end
 
-# ----------------------------- Day  10 ---------------------------------------
+# ----------------------------- Day 10 ---------------------------------------
 
 function scan(::Val{10}, line)::NTuple{4, Float64}
     m = match(r"position=< *(-?\d*), *(-?\d*)> velocity=< *(-?\d*), *(-?\d*)>", line)
@@ -299,5 +299,44 @@ function solve(day::Val{10}, ::Val{part}, lines) where part
         return :solution_has_been_plotted
     else # part 2
         Int(t)
+    end
+end
+
+# ----------------------------- Day 11 ---------------------------------------
+
+function scan(::Val{11}, line)::Int
+    parse.(Int, line)
+end
+
+function solve(day::Val{11}, ::Val{part}, lines) where part
+    data = scan(day, lines[1])
+
+    function fuel(x, y, d)
+        r = x+10
+        z = (r * y + d) * r
+        mod(z ÷ 100, 10) - 5
+    end
+
+    D = fuel.(1:300, (1:300)', data)
+    S1 = cumsum(D, dims=1)
+
+    function bestsquare(r)
+        S2 = S1[r:end, :]
+        S2[2:end, :] .-= S1[1:end-r, :]
+        S2 = cumsum(S2, dims=2)
+        Q = S2[:, r:end]
+        Q[:, 2:end] .-= S2[:, 1:end-r]
+        findmax(Q)
+    end
+
+    if part == 1
+        t=bestsquare(3)
+        string(t[2][1], ",", t[2][2])
+
+    else # part 2
+        A = bestsquare.(1:300)
+        i = argmax(first.(A))
+        string(A[i][2][1], ",", A[i][2][2], ",", i)
+
     end
 end
