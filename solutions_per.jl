@@ -340,3 +340,38 @@ function solve(day::Val{11}, ::Val{part}, lines) where part
 
     end
 end
+
+# ----------------------------- Day 12 ---------------------------------------
+
+function solve(day::Val{12}, ::Val{part}, lines) where part
+    G = part == 1 ? 20 : 1000
+
+    s0 = Vector{Char}(lines[1][16:end]) .== '#'
+
+    rules = Tuple(map(s -> s[10] == '#', sort(lines[2 .+ (1:32)], rev=true)))
+
+    r(v) = rules[sum((16, 8, 4, 2, 1) .* v)+1]
+
+    state = OffsetArray{Bool, 1}(undef, -2G:length(s0)+2G)
+    state .= false
+    state[0:length(s0)-1] .= s0
+    s = copy(state)
+    n = zeros(Int, G)
+    for k in 1:G
+        for j in firstindex(state)+2 : lastindex(state)-2
+            state[j] = r((s[j-2], s[j-1], s[j], s[j+1], s[j+2]))
+        end
+        s .= state
+        n[k] = sum( axes(state,1) .* state )
+    end
+
+    if part == 1
+        return n[end]
+    else
+        # TODO: In the general case we'd need to find the period of the final cycle
+        # For my input, it was 1.
+        f(k) = n[G] + (n[G]-n[G-1])*(k-G)
+        @assert f(G-10) == n[G-10]
+        f(50000000000)
+    end
+end
