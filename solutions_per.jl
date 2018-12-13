@@ -375,3 +375,150 @@ function solve(day::Val{12}, ::Val{part}, lines) where part
         f(50000000000)
     end
 end
+
+# ----------------------------- Day 13 ---------------------------------------
+
+function solve(day::Val{13}, ::Val{part}, lines) where part
+    c = Vector{Char}.(lines)
+    M = hcat(c...)
+    M = permutedims(M,(2,1))
+    M0 = copy(M)
+    M0[M0 .== '<'] .= '-'
+    M0[M0 .== '>'] .= '-'
+    M0[M0 .== '^'] .= '|'
+    M0[M0 .== 'v'] .= '|'
+    T = zeros(Int,size(M))
+    Mp = copy(M)
+
+    for k in 1:100000000
+        Mp .= M
+        for j in 1:size(M,2), i in 1:size(M,1)
+            M[i,j] != Mp[i,j] && continue
+            cp = M[i,j]
+            t = T[i,j]
+            if cp == '^'
+                c = M0[i-1,j]
+                if any(M[i-1,j] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j, i-1) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i-1,j] = M0[i-1,j]
+                    continue
+                end
+                (M[i-1,j], T[i-1,j]) = if c == '|'
+                    ('^', t)
+                elseif c == '/'
+                    ('>', t)
+                elseif c == '\\'
+                    ('<', t)
+                elseif c == '+'
+                    if t == 0
+                        ('<', 1)
+                    elseif t == 1
+                        ('^', 2)
+                    elseif t == 2
+                        ('>', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error("^")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == '>'
+                c = M0[i,j+1]
+                if any(M[i,j+1] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j+1, i) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i,j+1] = M0[i,j+1]
+                    continue
+                end
+                (M[i,j+1], T[i,j+1]) = if c == '-'
+                    ('>', t)
+                elseif c == '/'
+                    ('^', t)
+                elseif c == '\\'
+                    ('v', t)
+                elseif c == '+'
+                    if t == 0
+                        ('^', 1)
+                    elseif t == 1
+                        ('>', 2)
+                    elseif t == 2
+                        ('v', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error(">")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == 'v'
+                c = M0[i+1,j]
+                if any(M[i+1,j] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j, i+1) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i+1,j] = M0[i+1,j]
+                    continue
+                end
+                (M[i+1,j], T[i+1,j]) = if c == '|'
+                    ('v', t)
+                elseif c == '/'
+                    ('<', t)
+                elseif c == '\\'
+                    ('>', t)
+                elseif c == '+'
+                    if t == 0
+                        ('>', 1)
+                    elseif t == 1
+                        ('v', 2)
+                    elseif t == 2
+                        ('<', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error("^")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == '<'
+                c = M0[i,j-1]
+                if any(M[i,j-1] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j-1, i) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i,j-1] = M0[i,j-1]
+                    continue
+                end
+                (M[i,j-1], T[i,j-1]) = if c == '-'
+                    ('<', t)
+                elseif c == '/'
+                    ('v', t)
+                elseif c == '\\'
+                    ('^', t)
+                elseif c == '+'
+                    if t == 0
+                        ('v', 1)
+                    elseif t == 1
+                        ('<', 2)
+                    elseif t == 2
+                        ('^', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error(">")
+                end
+                M[i,j] = M0[i,j]
+            end #if
+        end # for
+        if part == 2
+            s = 0
+            for c in ('v', '<', '^', '>')
+                s += sum(M .== c)
+            end
+            #mod(k, 100) == 0 && @show k, s
+            if s == 1
+                for c in ('v', '<', '^', '>')
+                    ix = findfirst( M .== c )
+                    ix !== nothing && return string(ix[2]-1, ",", ix[1]-1)
+                end
+            end
+        end
+
+    end # while
+end
