@@ -1,6 +1,8 @@
 using OffsetArrays
 using Plots
 
+len = length # because i type "lenght" 50 % of the time when in a hurry.
+
 # ----------------------------- Day  1 ---------------------------------------
 
 scan(::Val{1}, line) = parse(Int, line)
@@ -114,7 +116,7 @@ function solve(day::Val{5}, ::Val{part}, lines) where part
                 push!(o, c)
             end
         end
-        length(o)
+        len(o)
     end
 
     if part == 1
@@ -288,7 +290,7 @@ function solve(day::Val{10}, ::Val{part}, lines) where part
     p = getindex.(data, [1 2])
     v = getindex.(data, [3 4])
 
-    x = [-v[:,2] ones(length(data))] \ p[:,2]
+    x = [-v[:,2] ones(len(data))] \ p[:,2]
 
     t = round(x[1])
     @. p += t*v
@@ -352,9 +354,9 @@ function solve(day::Val{12}, ::Val{part}, lines) where part
 
     r(v) = rules[sum((16, 8, 4, 2, 1) .* v)+1]
 
-    state = OffsetArray{Bool, 1}(undef, -2G:length(s0)+2G)
+    state = OffsetArray{Bool, 1}(undef, -2G:len(s0)+2G)
     state .= false
-    state[0:length(s0)-1] .= s0
+    state[0:len(s0)-1] .= s0
     s = copy(state)
     n = zeros(Int, G)
     for k in 1:G
@@ -390,7 +392,7 @@ function solve(day::Val{13}, ::Val{part}, lines) where part
     T = zeros(Int,size(M))
     Mp = copy(M)
 
-    for k in 1:100000000
+    while true
         Mp .= M
         for j in 1:size(M,2), i in 1:size(M,1)
             M[i,j] != Mp[i,j] && continue
@@ -511,7 +513,6 @@ function solve(day::Val{13}, ::Val{part}, lines) where part
             for c in ('v', '<', '^', '>')
                 s += sum(M .== c)
             end
-            #mod(k, 100) == 0 && @show k, s
             if s == 1
                 for c in ('v', '<', '^', '>')
                     ix = findfirst( M .== c )
@@ -521,4 +522,27 @@ function solve(day::Val{13}, ::Val{part}, lines) where part
         end
 
     end # while
+end
+
+# ----------------------------- Day 14 ---------------------------------------
+
+function solve(day::Val{14}, ::Val{part}, lines) where part
+    N = parse(Int, lines[1])
+    v = Vector{Char}(lines[1]) .- '0'
+    el = (1, 2)
+    s = Int[3,7]
+    while true
+        r = getindex.((s,), el)
+        n = +(r...)
+        for c in (n >= 10 ? (1, n - 10) : (n,))
+           push!(s, c)
+           if part == 2 && len(s) >= len(v) && all(i -> s[end-len(v)+i] == v[i], 1:len(v))
+               return len(s)-len(v)
+           end
+        end
+        el = mod.(el .+ r, len(s)) .+ 1
+        if part == 1 && len(s)>=N+10
+            return string(s[N+1:N+10]...)
+        end
+    end
 end
