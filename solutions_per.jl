@@ -1,7 +1,7 @@
 using OffsetArrays
 using Plots
 
-len = length # because i type "lenght" 50 % of the time when in a hurry.
+const len = length # because i type "lenght" 50 % of the time when in a hurry.
 
 # ----------------------------- Day  1 ---------------------------------------
 
