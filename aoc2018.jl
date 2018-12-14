@@ -89,7 +89,9 @@ function solveall(;reverse=false, clipboard=false, setglobals=false, twice=false
                     if N == 1 && clipboard
                         printstyled(r, bold=true)
                         InteractiveUtils.clipboard(string(r))
-                        print("  (copied to clipboard)")
+                        println("  (copied to clipboard)")
+                        print("To see all solutions and timings, run:\n\nAoC.solveall(twice=true)\n\n")
+                        return
                     else
                        print(r)
                     end

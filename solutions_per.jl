@@ -1,6 +1,8 @@
 using OffsetArrays
 using Plots
 
+const len = length # because i type "lenght" 50 % of the time when in a hurry.
+
 # ----------------------------- Day  1 ---------------------------------------
 
 scan(::Val{1}, line) = parse(Int, line)
@@ -114,7 +116,7 @@ function solve(day::Val{5}, ::Val{part}, lines) where part
                 push!(o, c)
             end
         end
-        length(o)
+        len(o)
     end
 
     if part == 1
@@ -288,7 +290,7 @@ function solve(day::Val{10}, ::Val{part}, lines) where part
     p = getindex.(data, [1 2])
     v = getindex.(data, [3 4])
 
-    x = [-v[:,2] ones(length(data))] \ p[:,2]
+    x = [-v[:,2] ones(len(data))] \ p[:,2]
 
     t = round(x[1])
     @. p += t*v
@@ -338,5 +340,209 @@ function solve(day::Val{11}, ::Val{part}, lines) where part
         i = argmax(first.(A))
         string(A[i][2][1], ",", A[i][2][2], ",", i)
 
+    end
+end
+
+# ----------------------------- Day 12 ---------------------------------------
+
+function solve(day::Val{12}, ::Val{part}, lines) where part
+    G = part == 1 ? 20 : 1000
+
+    s0 = Vector{Char}(lines[1][16:end]) .== '#'
+
+    rules = Tuple(map(s -> s[10] == '#', sort(lines[2 .+ (1:32)], rev=true)))
+
+    r(v) = rules[sum((16, 8, 4, 2, 1) .* v)+1]
+
+    state = OffsetArray{Bool, 1}(undef, -2G:len(s0)+2G)
+    state .= false
+    state[0:len(s0)-1] .= s0
+    s = copy(state)
+    n = zeros(Int, G)
+    for k in 1:G
+        for j in firstindex(state)+2 : lastindex(state)-2
+            state[j] = r((s[j-2], s[j-1], s[j], s[j+1], s[j+2]))
+        end
+        s .= state
+        n[k] = sum( axes(state,1) .* state )
+    end
+
+    if part == 1
+        return n[end]
+    else
+        # TODO: In the general case we'd need to find the period of the final cycle
+        # For my input, it was 1.
+        f(k) = n[G] + (n[G]-n[G-1])*(k-G)
+        @assert f(G-10) == n[G-10]
+        f(50000000000)
+    end
+end
+
+# ----------------------------- Day 13 ---------------------------------------
+
+function solve(day::Val{13}, ::Val{part}, lines) where part
+    c = Vector{Char}.(lines)
+    M = hcat(c...)
+    M = permutedims(M,(2,1))
+    M0 = copy(M)
+    M0[M0 .== '<'] .= '-'
+    M0[M0 .== '>'] .= '-'
+    M0[M0 .== '^'] .= '|'
+    M0[M0 .== 'v'] .= '|'
+    T = zeros(Int,size(M))
+    Mp = copy(M)
+
+    while true
+        Mp .= M
+        for j in 1:size(M,2), i in 1:size(M,1)
+            M[i,j] != Mp[i,j] && continue
+            cp = M[i,j]
+            t = T[i,j]
+            if cp == '^'
+                c = M0[i-1,j]
+                if any(M[i-1,j] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j, i-1) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i-1,j] = M0[i-1,j]
+                    continue
+                end
+                (M[i-1,j], T[i-1,j]) = if c == '|'
+                    ('^', t)
+                elseif c == '/'
+                    ('>', t)
+                elseif c == '\\'
+                    ('<', t)
+                elseif c == '+'
+                    if t == 0
+                        ('<', 1)
+                    elseif t == 1
+                        ('^', 2)
+                    elseif t == 2
+                        ('>', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error("^")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == '>'
+                c = M0[i,j+1]
+                if any(M[i,j+1] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j+1, i) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i,j+1] = M0[i,j+1]
+                    continue
+                end
+                (M[i,j+1], T[i,j+1]) = if c == '-'
+                    ('>', t)
+                elseif c == '/'
+                    ('^', t)
+                elseif c == '\\'
+                    ('v', t)
+                elseif c == '+'
+                    if t == 0
+                        ('^', 1)
+                    elseif t == 1
+                        ('>', 2)
+                    elseif t == 2
+                        ('v', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error(">")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == 'v'
+                c = M0[i+1,j]
+                if any(M[i+1,j] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j, i+1) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i+1,j] = M0[i+1,j]
+                    continue
+                end
+                (M[i+1,j], T[i+1,j]) = if c == '|'
+                    ('v', t)
+                elseif c == '/'
+                    ('<', t)
+                elseif c == '\\'
+                    ('>', t)
+                elseif c == '+'
+                    if t == 0
+                        ('>', 1)
+                    elseif t == 1
+                        ('v', 2)
+                    elseif t == 2
+                        ('<', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error("^")
+                end
+                M[i,j] = M0[i,j]
+            elseif cp == '<'
+                c = M0[i,j-1]
+                if any(M[i,j-1] .== ('v', '<', '^', '>'))
+                    part == 1 && return (j-1, i) .- (1, 1)
+                    M[i,j] = M0[i,j]
+                    M[i,j-1] = M0[i,j-1]
+                    continue
+                end
+                (M[i,j-1], T[i,j-1]) = if c == '-'
+                    ('<', t)
+                elseif c == '/'
+                    ('v', t)
+                elseif c == '\\'
+                    ('^', t)
+                elseif c == '+'
+                    if t == 0
+                        ('v', 1)
+                    elseif t == 1
+                        ('<', 2)
+                    elseif t == 2
+                        ('^', 0)
+                    end
+                else
+                    @show(i, j, c, t)
+                    error(">")
+                end
+                M[i,j] = M0[i,j]
+            end #if
+        end # for
+        if part == 2
+            s = 0
+            for c in ('v', '<', '^', '>')
+                s += sum(M .== c)
+            end
+            if s == 1
+                for c in ('v', '<', '^', '>')
+                    ix = findfirst( M .== c )
+                    ix !== nothing && return string(ix[2]-1, ",", ix[1]-1)
+                end
+            end
+        end
+
+    end # while
+end
+
+# ----------------------------- Day 14 ---------------------------------------
+
+function solve(day::Val{14}, ::Val{part}, lines) where part
+    N = parse(Int, lines[1])
+    v = Vector{Char}(lines[1]) .- '0'
+    el = (1, 2)
+    s = Int[3,7]
+    while true
+        r = getindex.((s,), el)
+        n = +(r...)
+        for c in (n >= 10 ? (1, n - 10) : (n,))
+           push!(s, c)
+           if part == 2 && len(s) >= len(v) && all(i -> s[end-len(v)+i] == v[i], 1:len(v))
+               return len(s)-len(v)
+           end
+        end
+        el = mod.(el .+ r, len(s)) .+ 1
+        if part == 1 && len(s)>=N+10
+            return string(s[N+1:N+10]...)
+        end
     end
 end
