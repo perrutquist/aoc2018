@@ -546,3 +546,106 @@ function solve(day::Val{14}, ::Val{part}, lines) where part
         end
     end
 end
+
+# ----------------------------- Day 15 ---------------------------------------
+
+function solve(day::Val{15}, ::Val{part}, lines) where part
+    c = Vector{Char}.(lines)
+    M = hcat(c...)
+
+    W = M .== '#'
+    #display(W)
+
+    E = [(ix[1], ix[2], M[ix]=='E', 200) for ix in findall((M .== 'E') .| (M .== 'G'))]
+
+    r = 0
+    inf = typemax(Int)
+    D = zeros(Int,size(M))
+    while true
+        r = r + 1
+        sort!(E, by=e->1024*e[2]+e[1])
+        for i in eachindex(E)
+            e = E[i]
+            e[4] > 0 || continue
+            se = sum(i->i[3]!=e[3] && i[4]>0, E)
+            if se==0
+                return (r-1) * sum(i->max(0,i[4]), E)
+            end
+            D .= inf
+            IX = fill(inf, size(D))
+            W2 = copy(W)
+            for o in E
+                o[4] > 0 || continue
+                W2[o[1],o[2]] = true
+                if o[3] != e[3]
+                    D[o[1], o[2]] = 0
+                end
+            end
+            W2[e[1],e[2]] = false
+            x = true
+            k = 0
+            while x && D[e[1], e[2]] == inf
+                x = false
+                k = k+1
+                for s in findall(.!W .& (D.==k-1))
+                    for t in map(i -> (s[1], s[2]) .+ i, ((0,1), (1,0), (0,-1), (-1,0)))
+                        if !W2[t[1],t[2]] && D[t[1],t[2]] > k
+                            x = true
+                            D[t[1],t[2]] = k
+                            if k==2
+                                IX[t[1],t[2]] = min(IX[t[1],t[2]], 1024*s[2]+s[1])
+                            else
+                                IX[t[1],t[2]] = min(IX[t[1],t[2]], IX[s[1],s[2]])
+                            end
+                        end
+                    end
+                end
+                #
+            end
+            if D[e[1], e[2]] == inf
+                #display(min.(D',999))
+                continue
+            end
+            # TODO select first/nearest reachable
+            ixm = inf
+            for t in map(i -> (e[1], e[2]) .+ i, ((0,-1), (-1,0), (1,0), (0,1)))
+                if D[t[1], t[2]] == D[e[1], e[2]] - 1 && D[t[1], t[2]] != 0
+                    ixm = min(ixm, IX[t[1],t[2]])
+                end
+            end
+            for t in map(i -> (e[1], e[2]) .+ i, ((0,-1), (-1,0), (1,0), (0,1)))
+                if D[t[1], t[2]] == D[e[1], e[2]] - 1 && D[t[1], t[2]] != 0 && IX[t[1],t[2]]==ixm
+                    e = (t..., E[i][3:4]...)
+                    E[i] = e
+                    break
+                end
+            end
+            hpm = inf
+            for t in map(i -> (e[1], e[2]) .+ i, ((0,-1), (-1,0), (1,0), (0,1)))
+                if D[t[1], t[2]] == 0
+                    ix = findfirst(i->i[1]==t[1] && i[2]==t[2] && i[4]>0, E)
+                    hpm = min(hpm, E[ix][4])
+                end
+            end
+            for t in map(i -> (e[1], e[2]) .+ i, ((0,-1), (-1,0), (1,0), (0,1)))
+                if D[t[1], t[2]] == 0
+                    ix = findfirst(i->i[1]==t[1] && i[2]==t[2] && i[4]>0, E)
+                    if E[ix][4] == hpm
+                        E[ix] = (E[ix][1:3]..., E[ix][4]-3)
+                        break
+                    end
+                end
+            end
+        end
+        Q = map(i -> i ? '#' : '.', W)
+        for e in E
+            Q[e[1],e[2]] = e[4] < 0 ? 'x' : e[3] ? 'E' : 'G'
+        end
+        #@show r
+        #for k in 1:size(Q,2)
+        #    println(String(Q[:,k]))
+        #end
+        #display( sort(E, by=e->1024*e[2]+e[1]) )
+        #r > 48 && return -1
+    end
+end
