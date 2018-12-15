@@ -556,9 +556,10 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
     W = M .== '#'
     #display(W)
 
-    E = [(ix[1], ix[2], M[ix]=='E', 200) for ix in findall((M .== 'E') .| (M .== 'G'))]
+    EE = [(ix[1], ix[2], M[ix]=='E', 200) for ix in findall((M .== 'E') .| (M .== 'G'))]
 
     function battle(ap)
+        E = deepcopy(EE)
 
         r = 0
         inf = typemax(Int)
@@ -569,9 +570,9 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
             for i in eachindex(E)
                 e = E[i]
                 e[4] > 0 || continue
-                se = sum(i->i[3]!=e[3] && i[4]>0, E)
-                if se==0
-                    return ((r-1) * sum(i->max(0,i[4]), E), e[3])
+                if !any(i->i[3]!=e[3] && i[4]>0, E)
+                    #display(sort(E, by=(i->1024*i[3]+i[4])))
+                    return ((r-1) * sum(i->max(0,i[4]), E), !any(i -> i[3] && i[4]<=0, E))
                 end
                 D .= inf
                 IX = fill(inf, size(D))
@@ -652,12 +653,15 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
             #display( sort(E, by=e->1024*e[2]+e[1]) )
             #r > 48 && return -1
     end
+
     if part == 1
         return battle(3)[1]
     else
         for k=3:200
-            if battle(k)[2]
-                return k
+            v = battle(k)
+            #@show k v
+            if v[2]
+                return v[1]
             end
         end
     end
