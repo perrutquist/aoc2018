@@ -564,6 +564,7 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
         r = 0
         inf = typemax(Int)
         D = zeros(Int,size(M))
+        IX = zeros(Int,size(M))
         while true
             r = r + 1
             sort!(E, by=e->1024*e[2]+e[1])
@@ -571,11 +572,10 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
                 e = E[i]
                 e[4] > 0 || continue
                 if !any(i->i[3]!=e[3] && i[4]>0, E)
-                    #display(sort(E, by=(i->1024*i[3]+i[4])))
                     return ((r-1) * sum(i->max(0,i[4]), E), !any(i -> i[3] && i[4]<=0, E))
                 end
                 D .= inf
-                IX = fill(inf, size(D))
+                IX .= inf
                 W2 = copy(W)
                 for o in E
                     o[4] > 0 || continue
@@ -606,7 +606,6 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
                     #
                 end
                 if D[e[1], e[2]] == inf
-                    #display(min.(D',999))
                     continue
                 end
                 # TODO select first/nearest reachable
@@ -640,18 +639,7 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
                     end
                 end
             end
-            Q = map(i -> i ? '#' : '.', W)
-            for e in E
-                Q[e[1],e[2]] = e[4] < 0 ? 'x' : e[3] ? 'E' : 'G'
-            end
         end
-
-            #@show r
-            #for k in 1:size(Q,2)
-            #    println(String(Q[:,k]))
-            #end
-            #display( sort(E, by=e->1024*e[2]+e[1]) )
-            #r > 48 && return -1
     end
 
     if part == 1
@@ -665,4 +653,73 @@ function solve(day::Val{15}, ::Val{part}, lines) where part
             end
         end
     end
+end
+
+# ----------------------------- Day 16 ---------------------------------------
+
+function solve(day::Val{16}, ::Val{part}, lines) where part
+    codes = [
+    (a, b, c, r) -> r[c] = r[a] + r[b] # addr
+    (a, b, c, r) -> r[c] = r[a] + b # addi
+    (a, b, c, r) -> r[c] = r[a] * r[b] # mulr
+    (a, b, c, r) -> r[c] = r[a] * b # muli
+    (a, b, c, r) -> r[c] = r[a] & r[b] # banr
+    (a, b, c, r) -> r[c] = r[a] & b # bani
+    (a, b, c, r) -> r[c] = r[a] | r[b] # borr
+    (a, b, c, r) -> r[c] = r[a] | b # bori
+    (a, b, c, r) -> r[c] = r[a] # setr
+    (a, b, c, r) -> r[c] = a # seti
+    (a, b, c, r) -> r[c] = a > r[b] ? 1 : 0 # gtir
+    (a, b, c, r) -> r[c] = r[a] > b ? 1 : 0 # gtri
+    (a, b, c, r) -> r[c] = r[a] > r[b] ? 1 : 0 # gtrr
+    (a, b, c, r) -> r[c] = a == r[b] ? 1 : 0 # eqir
+    (a, b, c, r) -> r[c] = r[a] == b ? 1 : 0 # eqri
+    (a, b, c, r) -> r[c] = r[a] == r[b] ? 1 : 0 # eqrr
+    ]
+
+    function ismatch(cod, bef, aft, i)
+        r = OffsetVector(copy(bef), 0:3)
+        codes[i](cod[2:4]..., r)
+        r[0:3] == aft
+    end
+
+    M = fill(true,16,16)
+    s = 0
+    ke = 0
+    for k in 1:4:length(lines)
+        if isempty(lines[k])
+            ke = k
+            break
+        end
+        mb = match(r"Before: \[(\d*), (\d*), (\d*), (\d*)\]", lines[k])
+        bef = parse.(Int, mb.captures)
+        mc = match(r"(\d*) (\d*) (\d*) (\d*)", lines[k+1])
+        cod = parse.(Int, mc.captures)
+        ma = match(r"After:  \[(\d*), (\d*), (\d*), (\d*)\]", lines[k+2])
+        aft = parse.(Int, ma.captures)
+        v = ismatch.((cod,), (bef,), (aft,), 1:16)
+        M[cod[1]+1, :] .&= v
+        if sum(v) >= 3
+            s += 1
+        end
+    end
+
+    part == 1 && return s
+
+    while sum(M)>16 # No guarantees here, Really should use a CP solver...
+        for i in findall(vec(sum(M, dims=1)) .== 1)
+            j = findfirst(M[:,i])
+            M[j,:] .= false
+            M[j,i] = true
+        end
+    end
+    T = [findfirst(M[k,:]) for k in axes(M,2)]
+
+    r = OffsetVector(fill(0, 4), 0:3)
+    for k in ke+2:length(lines)
+        mc = match(r"(\d*) (\d*) (\d*) (\d*)", lines[k])
+        cod = parse.(Int, mc.captures)
+        codes[T[cod[1]+1]](cod[2:4]..., r)
+    end
+    r[0]
 end
