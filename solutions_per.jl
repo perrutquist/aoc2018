@@ -733,8 +733,9 @@ end
 
 function solve(day::Val{17}, ::Val{part}, lines) where part
     data = scan.(day, lines)
-    @main data false
+
     mx = maximum(i->i[1] ? i[2] : i[4], data) + 2
+    miny = minimum(i->i[1] ? i[3] : i[2], data)
     my = maximum(i->i[1] ? i[4] : i[2], data)
     C = zeros(Bool, my+1, mx)
     for d in data
@@ -744,7 +745,6 @@ function solve(day::Val{17}, ::Val{part}, lines) where part
             C[d[2], d[3]:d[4]] .= true
         end
     end
-    @main C false
 
     W = zeros(Bool, my+1, mx)
     L = zeros(Bool, my+1, mx)
@@ -791,11 +791,10 @@ function solve(day::Val{17}, ::Val{part}, lines) where part
     sp = s
     s = sum(W[1:my, :])
     end
-    @main W false
-    @main L false
-    @main R false
 
-    heatmap(W .+ 4 .* C, legend=false, yflip=true)
-    sum(W[1:my, :])
+    #heatmap(W .+ 4 .* C, legend=false, yflip=true)
+    #gui()
 
+
+    part == 1 ? sum(W[miny:my, :]) : sum(L[miny:my, :] .& R[miny:my, :])
 end
