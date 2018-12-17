@@ -723,3 +723,79 @@ function solve(day::Val{16}, ::Val{part}, lines) where part
     end
     r[0]
 end
+
+# ----------------------------- Day 17 ---------------------------------------
+#x=495, y=2..7
+function scan(::Val{17}, line)::Tuple{Bool, Int, Int, Int}
+    m = match(r"(.)=(\d*), .=(\d*)\.\.(\d*)", line)
+    (m.captures[1]=="x", parse.(Float64, Tuple(m.captures[2:4]))...)
+end
+
+function solve(day::Val{17}, ::Val{part}, lines) where part
+    data = scan.(day, lines)
+    @main data false
+    mx = maximum(i->i[1] ? i[2] : i[4], data) + 2
+    my = maximum(i->i[1] ? i[4] : i[2], data)
+    C = zeros(Bool, my+1, mx)
+    for d in data
+        if d[1]
+            C[d[3]:d[4], d[2]] .= true
+        else
+            C[d[2], d[3]:d[4]] .= true
+        end
+    end
+    @main C false
+
+    W = zeros(Bool, my+1, mx)
+    L = zeros(Bool, my+1, mx)
+    R = zeros(Bool, my+1, mx)
+    W[1,500] = true
+    sp = -2
+    s = -1
+    while s != sp
+    for k in 1:my
+        # fill left
+        for j in mx-1:-1:1
+            if W[k, j+1] & !C[k, j] & (C[k+1, j+1] | (L[k+1, j+1] & R[k+1, j+1]))
+                W[k, j] = true
+            end
+        end
+        # fill right
+        for j in 2:mx
+            if W[k, j-1] & !C[k, j] & (C[k+1, j-1] | (L[k+1, j-1] & R[k+1, j-1]))
+                W[k, j] = true
+            end
+        end
+        # blocked right (going left)
+        for j in mx-1:-1:1
+            if W[k, j] & (C[k, j+1] | R[k, j+1]) & (C[k+1, j] | (L[k+1, j] & R[k+1, j]))
+                R[k, j] = true
+            end
+        end
+        # blocked left (going right)
+        for j in 2:mx
+            if W[k, j] & (C[k, j-1] | L[k, j-1]) & (C[k+1, j] | (L[k+1, j] & R[k+1, j]))
+                L[k, j] = true
+            end
+        end
+        # move down
+        if k < my
+            W[k+1,:] .= W[k,:] .& .!C[k+1,:]
+        end
+    end
+    # if mod(w,100)==0
+    #     heatmap(W .+ 4 .* C, legend=false, yflip=true)
+    #     gui()
+    #     @show sum(W[1:my, :])
+    # end
+    sp = s
+    s = sum(W[1:my, :])
+    end
+    @main W false
+    @main L false
+    @main R false
+
+    heatmap(W .+ 4 .* C, legend=false, yflip=true)
+    sum(W[1:my, :])
+
+end
