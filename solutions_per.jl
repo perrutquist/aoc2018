@@ -798,3 +798,40 @@ function solve(day::Val{17}, ::Val{part}, lines) where part
 
     part == 1 ? sum(W[miny:my, :]) : sum(L[miny:my, :] .& R[miny:my, :])
 end
+
+# ----------------------------- Day 18 ---------------------------------------
+
+function scan(::Val{18}, line)
+    Vector{Char}(line)
+end
+
+function solve(day::Val{18}, ::Val{part}, lines) where part
+    data = scan.(day, lines)
+    N = part == 1 ? 10 : 1000000000
+    M = fill(' ', 52, 52)
+    M[2:51, 2:51] .= hcat(data...)
+    M2 = copy(M)
+    D = Dict{UInt64,Int}()
+
+    adj(i, j, c) = sum(M[i-1:i+1, j-1:j+1] .== c) - (M[i, j] == c)
+
+    for t in 1:N
+        for i in 2:51, j in 2:51
+            if M[i,j] == '.' && adj(i,j,'|') >= 3
+                M2[i,j] = '|'
+            end
+            if M[i,j] == '|' && adj(i,j,'#') >= 3
+                M2[i,j] = '#'
+            end
+            if M[i,j] == '#' && (adj(i,j,'#') < 1 || adj(i,j,'|') < 1)
+                M2[i,j] = '.'
+            end
+        end
+        M .= M2
+        h = hash(M)
+        h ∈ keys(D) && mod(N-t, t-D[h]) == 0 && break
+        D[h] = t
+    end
+
+    return sum(M .== '#') * sum(M .== '|')
+end
