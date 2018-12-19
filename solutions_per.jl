@@ -835,3 +835,50 @@ function solve(day::Val{18}, ::Val{part}, lines) where part
 
     return sum(M .== '#') * sum(M .== '|')
 end
+
+# ----------------------------- Day 19 ---------------------------------------
+
+function scan(::Val{19}, line)::Tuple{Symbol, Int, Int, Int}
+    m = match(r"(.*) (\d*) (\d*) (\d*)", line)
+    m == nothing && return (:ip, parse(Int, line[end:end]), 0, 0)
+    (Symbol(m.captures[1]), parse.(Int, Tuple(m.captures[2:4]))...)
+end
+
+function solve(day::Val{19}, ::Val{part}, lines) where part
+    codes = Dict([
+    :addr => (a, b, c, r) -> r[c] = r[a] + r[b]
+    :addi => (a, b, c, r) -> r[c] = r[a] + b
+    :mulr => (a, b, c, r) -> r[c] = r[a] * r[b]
+    :muli => (a, b, c, r) -> r[c] = r[a] * b
+    :setr => (a, b, c, r) -> r[c] = r[a]
+    :seti => (a, b, c, r) -> r[c] = a
+    :gtir => (a, b, c, r) -> r[c] = a > r[b] ? 1 : 0
+    :gtri => (a, b, c, r) -> r[c] = r[a] > b ? 1 : 0
+    :gtrr => (a, b, c, r) -> r[c] = r[a] > r[b] ? 1 : 0
+    :eqir => (a, b, c, r) -> r[c] = a == r[b] ? 1 : 0
+    :eqri => (a, b, c, r) -> r[c] = r[a] == b ? 1 : 0
+    :eqrr => (a, b, c, r) -> r[c] = r[a] == r[b] ? 1 : 0
+    ])
+
+    ipr = scan(day, lines[1])[2]
+
+    c = OffsetArray(scan.(day, lines[2:end]), 0:length(lines)-2)
+
+    r = OffsetVector(zeros(Int,6), 0:5)
+    r[0] = part - 1
+
+    for k=1:30 # Long enough to compute N
+        r[ipr] ∈ axes(c,1) || return r[0]
+        l = c[r[ipr]]
+        codes[l[1]](l[2:4]..., r)
+        r[ipr] += 1
+    end
+    N = maximum(r) # This works on my input data
+    s = 0
+    for i=1:N
+        if mod(N,i) == 0
+             s += i
+        end
+    end
+    s
+end
