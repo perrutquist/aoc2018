@@ -883,3 +883,74 @@ function solve(day::Val{19}, ::Val{part}, lines) where part
     end
     s
 end
+
+# ----------------------------- Day 20 ---------------------------------------
+
+function solve(day::Val{20}, ::Val{part}, lines) where part
+    l = lines[1][2:end-1]
+    l = replace(l, "|" => ",")
+    l = replace(l, "(" => "*(")
+    l = replace(l, ",)" => ",())")
+
+    p = Meta.parse(l)
+
+    doorNS = zeros(Bool, 1000, 1000)
+    doorEW = zeros(Bool, 1000, 1000)
+
+    walk(pos) = pos
+    function walk(pos, a::String)
+        for c in a
+            if c == 'W'
+                pos = pos .+ (-1, 0)
+                doorEW[pos...] = true
+            elseif c == 'N'
+                pos = pos .+ (0, -1)
+                doorNS[pos...] = true
+            elseif c == 'E'
+                doorEW[pos...] = true
+                pos = pos .+ (1, 0)
+            elseif c == 'S'
+                doorNS[pos...] = true
+                pos = pos .+ (0, 1)
+            end
+        end
+        pos
+    end
+    walk(pos, a::Symbol, as...) = (pos = walk(pos, String(a)); walk(pos, as...))
+    function walk(pos, a::Expr, as...)
+        if a.head == :call # *
+            walk(pos, a.args[2:end]..., as...)
+        else # tuple
+            for x in a.args
+                walk(pos, x, as...)
+            end
+            nothing
+        end
+    end
+
+    walk((500,500), p)
+
+    B = 10000
+    dst = fill(B, 1000, 1000)
+    dst[500, 500] = 0
+    for k = 0:10000
+        e = false
+        for i in 2:999, j in 2:999
+            if dst[i,j] == k
+                if doorEW[i-1,j]
+                    dst[i-1,j] = min(dst[i-1,j], dst[i,j]+1)
+                end
+                if doorEW[i,j]
+                    dst[i+1,j] = min(dst[i+1,j], dst[i,j]+1)
+                end
+                if doorNS[i,j-1]
+                    dst[i,j-1] = min(dst[i,j-1], dst[i,j]+1)
+                end
+                if doorNS[i,j]
+                    dst[i,j+1] = min(dst[i,j+1], dst[i,j]+1)
+                end
+            end
+        end
+    end
+    part == 1 ? maximum(dst[dst.<B]) : sum((dst .>= 1000) .& (dst .< B))
+end
